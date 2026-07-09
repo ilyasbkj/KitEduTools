@@ -23,7 +23,7 @@ try {
     console.error("Firebase no configurado:", e);
 }
 
-window.fb = { auth, db, provider, signInWithPopup, onAuthStateChanged, signOut, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, where, orderBy, onSnapshot, setDoc };
+window.fb = { auth, db, provider, signInWithPopup, onAuthStateChanged, signOut, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, where, orderBy, onSnapshot, setDoc, getDoc };
 
 const app = {
     currentView: 'home',
@@ -53,6 +53,7 @@ const app = {
         Pomodoro.init();
         TextAnalyzer.init();
         SpellChecker.init();
+        ModalManager.init();
         AuthManager.init();
         Agenda.init();
         Notebook.init();
@@ -114,7 +115,7 @@ const app = {
         }
         
         // Handle Restricted Views
-        const restrictedViews = ['agenda', 'notebook'];
+        const restrictedViews = ['agenda', 'notebook', 'mindmap'];
         const overlay = document.getElementById('login-overlay');
         if (restrictedViews.includes(viewId)) {
             if (!AuthManager.currentUser) {
@@ -124,6 +125,7 @@ const app = {
                 // Trigger load if necessary
                 if (viewId === 'agenda') Agenda.loadEvents();
                 if (viewId === 'notebook') Notebook.loadSubjects();
+                if (viewId === 'mindmap') MindMap.loadFromCloud();
             }
         } else {
             overlay.classList.add('hidden');
@@ -932,6 +934,7 @@ const MindMap = {
             document.removeEventListener('mouseup', mouseUpHandler);
             this.dragNode = null;
             this.updateToolbarPosition();
+            this.saveToCloud();
         };
         
         document.addEventListener('mousemove', mouseMoveHandler);
@@ -1029,6 +1032,7 @@ const MindMap = {
 
         if (this.selectedNodeId === id) this.selectNode(null);
         this.renderLines();
+        this.saveToCloud();
     },
 
     updateNodeData(id, text) {
@@ -1144,6 +1148,7 @@ const MindMap = {
                 this.connections = data.connections;
                 this.renderLines();
                 app.toast('Mapa mental importado');
+                this.saveToCloud();
                 
             } catch (err) {
                 console.error(err);
@@ -1152,8 +1157,86 @@ const MindMap = {
         };
         reader.readAsText(file);
         e.target.value = ''; 
+    },
+    
+    getMapData() {
+        return {
+            nodes: this.nodes.map(n => ({ id: n.id, text: n.text, x: n.x, y: n.y, bgColor: n.bgColor, textColor: n.textColor, scale: n.scale })),
+            connections: this.connections
+        };
+    },
+    
+    async saveToCloud() {
+        if (!AuthManager.currentUser || !window.fb || !window.fb.db) return;
+        const uid = AuthManager.currentUser.uid;
+        const data = this.getMapData();
+        try {
+            await window.fb.setDoc(window.fb.doc(window.fb.db, 'mindmaps', uid), {
+                data: JSON.stringify(data),
+                updatedAt: new Date()
+            });
+            app.toast('Mapa guardado en la nube ☁️');
+        } catch (e) {
+            console.error(e);
+        }
+    },
+    
+    async loadFromCloud() {
+        if (!AuthManager.currentUser || !window.fb || !window.fb.db) return;
+        const uid = AuthManager.currentUser.uid;
+        try {
+            const docSnap = await window.fb.getDoc(window.fb.doc(window.fb.db, 'mindmaps', uid));
+            if (docSnap.exists()) {
+                const data = JSON.parse(docSnap.data().data);
+                if (data.nodes && data.nodes.length > 0) {
+                    this._loadData(data);
+                    app.toast('Mapa cargado de la nube ☁️');
+                }
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    },
+    
+    _loadData(data) {
+        this.clearMap(false);
+        data.nodes.forEach(n => {
+            this.nodeCounter = Math.max(this.nodeCounter, parseInt(n.id.split('_')[1]) + 1);
+            const el = document.createElement('div');
+            const scale = n.scale || 1;
+            el.className = 'mindmap-node shadow';
+            el.id = n.id;
+            el.style.left = n.x + 'px';
+            el.style.top = n.y + 'px';
+            el.style.transform = `scale(${scale})`;
+            el.style.backgroundColor = n.bgColor || '#ffffff';
+            el.style.color = n.textColor || '#1e293b';
+            const content = document.createElement('div');
+            content.className = 'node-content font-medium';
+            content.innerHTML = n.text;
+            content.contentEditable = false;
+            el.appendChild(content);
+            el.ondblclick = (ev) => {
+                ev.stopPropagation();
+                content.contentEditable = true;
+                content.focus();
+                document.execCommand('selectAll', false, null);
+            };
+            content.onblur = () => {
+                content.contentEditable = false;
+                this.updateNodeData(n.id, content.innerHTML);
+                if (this.selectedNodeId === n.id) this.updateToolbarPosition();
+                this.saveToCloud();
+            };
+            el.onmousedown = (ev) => this.startDrag(ev, n.id, el);
+            this.nodesContainer.appendChild(el);
+            this.nodes.push({ id: n.id, text: n.text, x: n.x, y: n.y, bgColor: n.bgColor || '#ffffff', textColor: n.textColor || '#1e293b', scale, el });
+        });
+        this.connections = data.connections;
+        this.renderLines();
     }
 };
+
 
 // ==========================================
 // MODULE: Pomodoro
@@ -1466,6 +1549,93 @@ const SpellChecker = {
 };
 
 // ==========================================
+// MODULE: Modal Manager
+// ==========================================
+const ModalManager = {
+    modal: null,
+    content: null,
+    title: null,
+    desc: null,
+    body: null,
+    btnCancel: null,
+    btnConfirm: null,
+    btnClose: null,
+    
+    init() {
+        this.modal = document.getElementById('custom-modal');
+        this.content = document.getElementById('custom-modal-content');
+        this.title = document.getElementById('custom-modal-title');
+        this.desc = document.getElementById('custom-modal-desc');
+        this.body = document.getElementById('custom-modal-body');
+        this.btnCancel = document.getElementById('custom-modal-cancel');
+        this.btnConfirm = document.getElementById('custom-modal-confirm');
+        this.btnClose = document.getElementById('custom-modal-close');
+        
+        if (!this.modal) return;
+        
+        this.btnCancel.onclick = () => this.close();
+        this.btnClose.onclick = () => this.close();
+    },
+    
+    show({ title, description, inputs, confirmText, onConfirm }) {
+        this.title.textContent = title;
+        if (description) {
+            this.desc.textContent = description;
+            this.desc.classList.remove('hidden');
+        } else {
+            this.desc.classList.add('hidden');
+        }
+        
+        this.body.innerHTML = '';
+        const inputElements = [];
+        
+        inputs.forEach((inp, idx) => {
+            const wrapper = document.createElement('div');
+            const label = document.createElement('label');
+            label.className = 'block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1';
+            label.textContent = inp.label;
+            
+            const field = document.createElement('input');
+            field.type = inp.type || 'text';
+            field.placeholder = inp.placeholder || '';
+            field.className = 'w-full bg-slate-50 dark:bg-[#0f141e] border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-shadow';
+            field.id = `modal-inp-${idx}`;
+            
+            wrapper.appendChild(label);
+            wrapper.appendChild(field);
+            this.body.appendChild(wrapper);
+            inputElements.push(field);
+        });
+        
+        this.btnConfirm.textContent = confirmText || 'Aceptar';
+        this.btnConfirm.onclick = () => {
+            const values = inputElements.map(el => el.value.trim());
+            if (values.some(v => v === '')) {
+                app.toast('Por favor, rellena los campos.');
+                return;
+            }
+            onConfirm(values);
+            this.close();
+        };
+        
+        this.modal.classList.remove('opacity-0', 'pointer-events-none');
+        setTimeout(() => {
+            this.content.classList.remove('scale-95');
+            this.content.classList.add('scale-100');
+            if (inputElements.length > 0) inputElements[0].focus();
+        }, 10);
+    },
+    
+    close() {
+        this.content.classList.remove('scale-100');
+        this.content.classList.add('scale-95');
+        setTimeout(() => {
+            this.modal.classList.add('opacity-0', 'pointer-events-none');
+        }, 200);
+    }
+};
+
+// ==========================================
 // MODULE: Auth Manager
 // ==========================================
 const AuthManager = {
@@ -1510,6 +1680,20 @@ const AuthManager = {
         if (!window.fb || !window.fb.auth) return;
         try {
             await window.fb.signOut(window.fb.auth);
+            
+            // Clean up state
+            Agenda.events = [];
+            Agenda.renderEvents();
+            
+            Notebook.subjects = [];
+            Notebook.topics = [];
+            Notebook.currentSubjectId = null;
+            Notebook.currentTopicId = null;
+            Notebook.renderSubjects();
+            Notebook.renderTopics();
+            const nbEditor = document.getElementById('nb-editor');
+            if (nbEditor) nbEditor.innerHTML = '';
+            
             app.toast('Sesión cerrada');
             app.navigate('home');
         } catch (error) {
@@ -1654,34 +1838,41 @@ const Agenda = {
         });
     },
     
-    async addEvent() {
+    addEvent() {
         if (!AuthManager.currentUser || !window.fb.db) {
             app.toast('Debes iniciar sesión para añadir eventos.');
             return;
         }
         
-        const title = prompt('Título del evento:');
-        if (!title) return;
-        const time = prompt('Hora (opcional, ej. 10:00):', '');
-        
-        const year = this.selectedDate.getFullYear();
-        const month = String(this.selectedDate.getMonth() + 1).padStart(2, '0');
-        const day = String(this.selectedDate.getDate()).padStart(2, '0');
-        const dateString = `${year}-${month}-${day}`;
-        
-        try {
-            await window.fb.addDoc(window.fb.collection(window.fb.db, "agenda"), {
-                uid: AuthManager.currentUser.uid,
-                title: title,
-                time: time,
-                date: dateString,
-                createdAt: new Date()
-            });
-            app.toast('Evento añadido');
-        } catch (e) {
-            console.error(e);
-            app.toast('Error al añadir evento');
-        }
+        ModalManager.show({
+            title: 'Nuevo Evento',
+            inputs: [
+                { label: 'Título del evento', placeholder: 'Ej. Examen de Historia' },
+                { label: 'Hora (Opcional)', placeholder: 'Ej. 10:00' }
+            ],
+            confirmText: 'Añadir',
+            onConfirm: async (values) => {
+                const title = values[0];
+                const time = values[1];
+                const year = this.selectedDate.getFullYear();
+                const month = String(this.selectedDate.getMonth() + 1).padStart(2, '0');
+                const day = String(this.selectedDate.getDate()).padStart(2, '0');
+                const dateString = `${year}-${month}-${day}`;
+                
+                try {
+                    await window.fb.addDoc(window.fb.collection(window.fb.db, "agenda"), {
+                        uid: AuthManager.currentUser.uid,
+                        title: title,
+                        time: time,
+                        date: dateString,
+                        createdAt: new Date()
+                    });
+                    app.toast('Evento añadido');
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+        });
     },
     
     async deleteEvent(id) {
@@ -1732,10 +1923,17 @@ const Notebook = {
                 clearTimeout(this.saveTimeout);
                 this.saveTimeout = setTimeout(() => this.saveTopicContent(), 1500);
             }
+            if (this.activeImage) this.updateResizerPosition();
+        });
+        
+        this.editor.addEventListener('scroll', () => {
+            if (this.activeImage) this.updateResizerPosition();
         });
         
         this.imageInput.addEventListener('change', (e) => this.insertImage(e));
         this.linkMindmapBtn.addEventListener('click', () => this.insertMindMapLink());
+        
+        this.initImageResizer();
     },
     
     async loadSubjects() {
@@ -1782,22 +1980,26 @@ const Notebook = {
         });
     },
     
-    async addSubject() {
+    addSubject() {
         if (!AuthManager.currentUser) return;
-        const name = prompt('Nombre de la asignatura:');
-        if (!name) return;
-        
-        try {
-            await window.fb.addDoc(window.fb.collection(window.fb.db, "notebook_subjects"), {
-                uid: AuthManager.currentUser.uid,
-                name: name,
-                createdAt: new Date()
-            });
-            app.toast('Asignatura creada');
-        } catch (e) {
-            console.error(e);
-            alert('Error al crear asignatura: ' + e.message);
-        }
+        ModalManager.show({
+            title: 'Nueva Asignatura',
+            inputs: [{ label: 'Nombre de la asignatura', placeholder: 'Ej. Matemáticas' }],
+            confirmText: 'Crear',
+            onConfirm: async (values) => {
+                const name = values[0];
+                try {
+                    await window.fb.addDoc(window.fb.collection(window.fb.db, "notebook_subjects"), {
+                        uid: AuthManager.currentUser.uid,
+                        name: name,
+                        createdAt: new Date()
+                    });
+                    app.toast('Asignatura creada');
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+        });
     },
     
     async deleteSubject(id) {
@@ -1873,24 +2075,28 @@ const Notebook = {
         });
     },
     
-    async addTopic() {
+    addTopic() {
         if (!this.currentSubjectId) return;
-        const title = prompt('Título del tema:');
-        if (!title) return;
-        
-        try {
-            await window.fb.addDoc(window.fb.collection(window.fb.db, "notebook_topics"), {
-                uid: AuthManager.currentUser.uid,
-                subjectId: this.currentSubjectId,
-                title: title,
-                content: '',
-                createdAt: new Date()
-            });
-            app.toast('Tema creado');
-        } catch (e) {
-            console.error(e);
-            alert('Error al crear tema: ' + e.message);
-        }
+        ModalManager.show({
+            title: 'Nuevo Tema',
+            inputs: [{ label: 'Título del tema', placeholder: 'Ej. Tema 1: Ecuaciones' }],
+            confirmText: 'Crear',
+            onConfirm: async (values) => {
+                const title = values[0];
+                try {
+                    await window.fb.addDoc(window.fb.collection(window.fb.db, "notebook_topics"), {
+                        uid: AuthManager.currentUser.uid,
+                        subjectId: this.currentSubjectId,
+                        title: title,
+                        content: '',
+                        createdAt: new Date()
+                    });
+                    app.toast('Tema creado');
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+        });
     },
     
     async deleteTopic(id) {
@@ -1973,25 +2179,104 @@ const Notebook = {
     },
     
     insertMindMapLink() {
-        const title = prompt('Título del enlace al Mapa Mental:');
-        if (!title) return;
-        
-        const html = `&nbsp;<span class="cursor-pointer text-brand-500 underline font-bold px-1 rounded hover:bg-brand-50 dark:hover:bg-brand-900/30" onclick="window.app.navigate('mindmap');" contenteditable="false"><i class="fa-solid fa-diagram-project text-xs"></i> ${this.escapeHtml(title)}</span>&nbsp;`;
-        
-        this.editor.focus();
-        document.execCommand('insertHTML', false, html);
-        this.editor.dispatchEvent(new Event('input'));
+        ModalManager.show({
+            title: 'Enlace a Mapa Mental',
+            description: 'Se creará un enlace directo a los Mapas Mentales.',
+            inputs: [{ label: 'Título del enlace', placeholder: 'Ej. Ver mapa de células' }],
+            confirmText: 'Insertar',
+            onConfirm: (values) => {
+                const title = values[0];
+                const html = `&nbsp;<span class="cursor-pointer text-brand-500 underline font-bold px-1 rounded hover:bg-brand-50 dark:hover:bg-brand-900/30" onclick="window.app.navigate('mindmap');" contenteditable="false"><i class="fa-solid fa-diagram-project text-xs"></i> ${this.escapeHtml(title)}</span>&nbsp;`;
+                
+                this.editor.focus();
+                document.execCommand('insertHTML', false, html);
+                this.editor.dispatchEvent(new Event('input'));
+            }
+        });
     },
     
     escapeHtml(text) {
         if (!text) return '';
         return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    },
+    
+    initImageResizer() {
+        this.resizerBox = document.createElement('div');
+        this.resizerBox.style.cssText = 'position:absolute;border:2px solid #6366f1;display:none;pointer-events:none;z-index:10;box-shadow:0 0 0 3px rgba(99,102,241,0.2);transition:none;';
+        
+        this.resizeHandle = document.createElement('div');
+        this.resizeHandle.style.cssText = 'position:absolute;bottom:-7px;right:-7px;width:14px;height:14px;background:white;border:2px solid #6366f1;border-radius:50%;cursor:se-resize;pointer-events:auto;box-shadow:0 2px 6px rgba(0,0,0,0.3);';
+        this.resizerBox.appendChild(this.resizeHandle);
+        
+        const editorParent = this.editor.parentElement;
+        editorParent.style.position = 'relative';
+        editorParent.appendChild(this.resizerBox);
+        
+        this.activeImage = null;
+        let isResizing = false;
+        let startX, startWidth;
+        
+        this.editor.addEventListener('click', (e) => {
+            if (e.target.tagName === 'IMG') {
+                this.activeImage = e.target;
+                this.activeImage.style.cursor = 'pointer';
+                this.activeImage.style.display = 'block';
+                this.updateResizerPosition();
+                this.resizerBox.style.display = 'block';
+            } else if (e.target !== this.resizeHandle) {
+                this.resizerBox.style.display = 'none';
+                this.activeImage = null;
+            }
+        });
+        
+        this.resizeHandle.addEventListener('mousedown', (e) => {
+            if (!this.activeImage) return;
+            isResizing = true;
+            startX = e.clientX;
+            startWidth = this.activeImage.clientWidth;
+            e.preventDefault();
+            e.stopPropagation();
+        });
+        
+        document.addEventListener('mousemove', (e) => {
+            if (!isResizing || !this.activeImage) return;
+            const diffX = e.clientX - startX;
+            const newWidth = Math.max(40, startWidth + diffX);
+            this.activeImage.style.width = newWidth + 'px';
+            this.activeImage.style.height = 'auto';
+            this.updateResizerPosition();
+        });
+        
+        document.addEventListener('mouseup', () => {
+            if (isResizing) {
+                isResizing = false;
+                this.editor.dispatchEvent(new Event('input'));
+            }
+        });
+        
+        // Keep resizer in sync while scrolling
+        this.editor.addEventListener('scroll', () => {
+            if (this.activeImage) this.updateResizerPosition();
+        });
+    },
+    
+    updateResizerPosition() {
+        if (!this.activeImage || !this.resizerBox) return;
+        const parentRect = this.editor.parentElement.getBoundingClientRect();
+        const imgRect = this.activeImage.getBoundingClientRect();
+        this.resizerBox.style.left = (imgRect.left - parentRect.left) + 'px';
+        this.resizerBox.style.top = (imgRect.top - parentRect.top) + 'px';
+        this.resizerBox.style.width = imgRect.width + 'px';
+        this.resizerBox.style.height = imgRect.height + 'px';
     }
 };
+
 
 window.AuthManager = AuthManager;
 window.Agenda = Agenda;
 window.Notebook = Notebook;
+window.MindMap = MindMap;
+window.ModalManager = ModalManager;
 window.app = app;
 
 document.addEventListener('DOMContentLoaded', () => {
