@@ -26,9 +26,9 @@ main {
   overflow-y: auto;
 }
 
-/* Every view-section that is NOT the home view
+/* Every view-section that is NOT the home view and NOT hidden
    should fill the full height of main */
-.view-section:not(#view-home) {
+.view-section:not(#view-home):not(.hidden) {
   flex: 1;
   min-height: 0;
   display: flex;
@@ -238,9 +238,6 @@ input[type=range]:focus { outline: none; }
    MOBILE — general tool view padding
    ============================================= */
 @media (max-width: 640px) {
-  .view-section:not(#view-home) {
-    padding: 0;
-  }
   /* Top headings in tool views */
   .view-section h2.text-3xl,
   .view-section h2.text-2xl {
