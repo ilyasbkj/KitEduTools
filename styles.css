@@ -17,20 +17,36 @@ body { transition: background-color 0.3s ease, color 0.3s ease; }
 }
 
 /* =============================================
-   LAYOUT — ensure views fill the available height
-   =============================================
-   main gets its height from the parent flex container via align-items:stretch.
-   Children with h-full need main to have a definite height.
-   We DON'T make main a flex column — the HTML handles that per-view.
+   LAYOUT
+   ———————————————————————————
+   PROBLEM: main has overflow-y:auto. In modern Chrome,
+   height:100% on children of an overflow container
+   resolves to the CONTENT height, not the CSS height.
+   So h-full on view sections doesn't fill the screen.
+   
+   FIX: Use a concrete calc(100vh - ...) so the height
+   is always definite, regardless of scroll context.
+   nav=56px, main padding: 64px desktop / 24px mobile.
 */
-main {
-  height: 100%;
+.view-section:not(#view-home):not(.hidden) {
+  height: calc(100vh - 56px - 64px);
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-/* Home view never needs h-full */
+@media (max-width: 767px) {
+  .view-section:not(#view-home):not(.hidden) {
+    height: calc(100vh - 56px - 24px);
+  }
+}
+
+/* Home view: natural height, scrollable */
 #view-home {
-  height: auto;
-  min-height: unset;
+  height: auto !important;
+  overflow: visible !important;
+  display: block !important;
 }
 
 /* =============================================
