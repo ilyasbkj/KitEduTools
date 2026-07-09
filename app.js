@@ -32,12 +32,12 @@ const app = {
         { id: 'calculator', name: 'Calculadora Avanzada', cat: 'Matemáticas', icon: 'fa-calculator', color: 'text-brand-500', bg: 'bg-brand-50 dark:bg-brand-900/20', desc: 'Calculadora con modos Científico, Programador, Ecuaciones, Fracciones y Matrices.' },
         { id: 'converter', name: 'Conversor Universal', cat: 'Matemáticas', icon: 'fa-scale-balanced', color: 'text-brand-500', bg: 'bg-brand-50 dark:bg-brand-900/20', desc: 'Convierte unidades físicas y sistemas matemáticos al instante.' },
         { id: 'editor', name: 'Editor HTML en Vivo', cat: 'Desarrollo', icon: 'fa-code', color: 'text-brand-500', bg: 'bg-brand-50 dark:bg-brand-900/20', desc: 'Escribe código HTML y visualiza el resultado en tiempo real.' },
-        { id: 'mindmap', name: 'Mapas Mentales', cat: 'Estudio', icon: 'fa-diagram-project', color: 'text-brand-500', bg: 'bg-brand-50 dark:bg-brand-900/20', desc: 'Crea esquemas interactivos personalizables y guárdalos.' },
         { id: 'pomodoro', name: 'Temporizador Pomodoro', cat: 'Estudio', icon: 'fa-stopwatch', color: 'text-brand-500', bg: 'bg-brand-50 dark:bg-brand-900/20', desc: 'Gestiona tu tiempo de estudio con intervalos personalizables.' },
         { id: 'textanalyzer', name: 'Analizador de Textos', cat: 'Estudio', icon: 'fa-chart-simple', color: 'text-brand-500', bg: 'bg-brand-50 dark:bg-brand-900/20', desc: 'Análisis detallado de palabras, caracteres y tiempo de lectura.' },
         { id: 'spellchecker', name: 'Corrector Ortográfico', cat: 'Estudio', icon: 'fa-spell-check', color: 'text-brand-500', bg: 'bg-brand-50 dark:bg-brand-900/20', desc: 'Corrector avanzado multilingüe para textos impecables.' },
-        { id: 'agenda', name: 'Agenda Personal', cat: 'Nube', icon: 'fa-calendar-days', color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20', desc: 'Gestiona tus eventos diarios con almacenamiento seguro.' },
-        { id: 'notebook', name: 'Libreta de Apuntes', cat: 'Nube', icon: 'fa-book-journal-whills', color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20', desc: 'Guarda tus apuntes por asignatura, incluye imágenes y enlaces.' }
+        { id: 'agenda', name: 'Agenda Personal', cat: 'Estudio', icon: 'fa-calendar-days', color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20', desc: 'Gestiona tus eventos diarios con almacenamiento seguro en la nube. ☁️', badge: 'Cuenta' },
+        { id: 'notebook', name: 'Libreta de Apuntes', cat: 'Estudio', icon: 'fa-book-journal-whills', color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20', desc: 'Guarda tus apuntes por asignatura, incluye imágenes y enlaces. ☁️', badge: 'Cuenta' },
+        { id: 'mindmap', name: 'Mapas Mentales', cat: 'Estudio', icon: 'fa-diagram-project', color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20', desc: 'Crea y guarda esquemas interactivos en tu cuenta. ☁️', badge: 'Cuenta' },
     ],
 
     init() {
@@ -195,24 +195,25 @@ const app = {
         filteredTools.forEach(tool => {
             const card = document.createElement('div');
             card.className = 'bg-white dark:bg-[#1a2233] rounded-3xl p-6 shadow-sm hover:shadow-xl transition-all cursor-pointer border border-slate-200 dark:border-slate-800/80 transform hover:-translate-y-1 group';
-            card.onclick = () => {
-                this.navigate(tool.id);
-            };
+            card.onclick = () => { this.navigate(tool.id); };
+            
+            const badgeHtml = tool.badge
+                ? `<span class="text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 flex items-center gap-1"><i class="fa-solid fa-cloud text-[9px]"></i>${tool.badge}</span>`
+                : `<span class="text-[10px] uppercase tracking-wider font-bold px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">${tool.cat}</span>`;
             
             card.innerHTML = `
                 <div class="flex items-start justify-between mb-4">
                     <div class="w-14 h-14 rounded-2xl ${tool.bg} ${tool.color} flex items-center justify-center text-2xl transition-transform group-hover:scale-110">
                         <i class="fa-solid ${tool.icon}"></i>
                     </div>
-                    <span class="text-[10px] uppercase tracking-wider font-bold px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
-                        ${tool.cat}
-                    </span>
+                    ${badgeHtml}
                 </div>
                 <h3 class="text-xl font-bold mb-2">${tool.name}</h3>
                 <p class="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">${tool.desc}</p>
             `;
             grid.appendChild(card);
         });
+
     },
 
     initSearch() {

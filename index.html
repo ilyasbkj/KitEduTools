@@ -49,34 +49,33 @@
 
     <!-- Global Top Navigation -->
     <nav class="border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-[#0f141e]/80 backdrop-blur-md sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex items-center justify-between h-14">
                 <!-- Logo -->
                 <div class="flex-shrink-0 flex items-center">
                     <button id="mobile-menu-btn" class="md:hidden mr-3 p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 transition-colors" title="Menú">
                         <i class="fa-solid fa-bars text-xl"></i>
                     </button>
                     <div class="flex items-center cursor-pointer" onclick="window.app.navigate('home')">
-                        <div class="w-8 h-8 rounded-lg bg-brand-500 flex items-center justify-center text-white mr-3 shadow-lg shadow-brand-500/30">
-                            <i class="fa-solid fa-graduation-cap"></i>
+                        <div class="w-8 h-8 rounded-lg bg-brand-500 flex items-center justify-center text-white mr-2 shadow-lg shadow-brand-500/30">
+                            <i class="fa-solid fa-graduation-cap text-sm"></i>
                         </div>
-                        <span class="font-bold text-xl tracking-tight hidden sm:block">EduToolKit</span>
+                        <span class="font-bold text-lg tracking-tight">EduToolKit</span>
                     </div>
                 </div>
                 <!-- Theme & Profile -->
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2">
                     <button id="theme-toggle" class="p-2 rounded-full text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                         <i class="fa-solid fa-sun text-lg" id="theme-icon"></i>
                     </button>
-                    <!-- User Profile Area -->
-                    <div id="user-profile-container" class="relative flex items-center ml-2 border-l border-slate-200 dark:border-slate-700 pl-4">
-                        <button id="btn-login" class="bg-brand-500 hover:bg-brand-600 text-white font-medium py-1.5 px-4 rounded-lg shadow-sm transition-colors text-sm flex items-center gap-2">
-                            <i class="fa-brands fa-google"></i> Conectar
+                    <div id="user-profile-container" class="relative flex items-center ml-1 border-l border-slate-200 dark:border-slate-700 pl-3">
+                        <button id="btn-login" class="bg-brand-500 hover:bg-brand-600 text-white font-medium py-1.5 px-3 rounded-lg shadow-sm transition-colors text-sm flex items-center gap-1.5">
+                            <i class="fa-brands fa-google text-xs"></i> <span class="hidden xs:inline">Conectar</span><span class="xs:hidden">G</span>
                         </button>
-                        <div id="user-info" class="hidden items-center gap-3">
+                        <div id="user-info" class="hidden items-center gap-2">
                             <img id="user-avatar" src="" alt="Avatar" class="w-8 h-8 rounded-full border-2 border-brand-500 shadow-sm cursor-pointer" title="Tu Perfil">
-                            <span id="user-name" class="font-medium text-sm hidden sm:block"></span>
-                            <button id="btn-logout" class="text-slate-400 hover:text-red-500 transition-colors" title="Cerrar sesión"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
+                            <span id="user-name" class="font-medium text-sm hidden md:block"></span>
+                            <button id="btn-logout" class="text-slate-400 hover:text-red-500 transition-colors p-1" title="Cerrar sesión"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
                         </div>
                     </div>
                 </div>
@@ -85,18 +84,19 @@
     </nav>
 
     <!-- Main Container (Sidebar + Content) -->
-    <div class="flex flex-1 overflow-hidden relative">
+    <div class="flex flex-1 overflow-hidden relative" style="height: calc(100vh - 56px)">
         
         <!-- Mobile Sidebar Overlay -->
-        <div id="mobile-overlay" class="hidden absolute inset-0 bg-slate-900/50 z-40 md:hidden backdrop-blur-sm transition-opacity"></div>
+        <div id="mobile-overlay" class="hidden absolute inset-0 bg-slate-900/50 z-40 md:hidden backdrop-blur-sm"></div>
 
-        <!-- Sidebar Navigation (Hidden on Home) -->
-        <aside id="sidebar" class="absolute md:relative z-50 w-64 bg-white dark:bg-[#151b26] border-r border-slate-200 dark:border-slate-800 flex-shrink-0 hidden flex-col transition-transform duration-300 ease-in-out h-full overflow-y-auto -translate-x-full md:translate-x-0">
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar" class="absolute md:relative z-50 w-64 bg-white dark:bg-[#151b26] border-r border-slate-200 dark:border-slate-800 flex-shrink-0 hidden flex-col h-full overflow-y-auto -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
             <div class="p-4">
                 <button onclick="app.navigate('home')" class="w-full flex items-center px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white mb-4">
                     <i class="fa-solid fa-arrow-left mr-2"></i> Volver al Inicio
                 </button>
                 <div class="space-y-1">
+                    <p class="px-4 pb-1 text-xs font-bold text-slate-400 uppercase tracking-wider">Herramientas</p>
                     <button onclick="app.navigate('calculator')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
                         <i class="fa-solid fa-calculator w-6"></i> Calculadora
                     </button>
@@ -106,7 +106,6 @@
                     <button onclick="app.navigate('editor')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
                         <i class="fa-solid fa-code w-6"></i> Editor HTML
                     </button>
-
                     <button onclick="app.navigate('pomodoro')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
                         <i class="fa-solid fa-stopwatch w-6"></i> Pomodoro
                     </button>
@@ -118,70 +117,71 @@
                     </button>
                     
                     <div class="pt-4 pb-2">
-                        <p class="px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">En la Nube <i class="fa-solid fa-cloud text-brand-500 ml-1"></i></p>
+                        <p class="px-4 text-xs font-bold text-blue-500 uppercase tracking-wider"><i class="fa-solid fa-cloud mr-1"></i> Con Cuenta</p>
                     </div>
                     
                     <button onclick="app.navigate('agenda')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
-                        <i class="fa-solid fa-calendar-days w-6"></i> Agenda Personal
+                        <i class="fa-solid fa-calendar-days w-6 text-blue-500"></i> Agenda Personal
                     </button>
                     <button onclick="app.navigate('notebook')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
-                        <i class="fa-solid fa-book-journal-whills w-6"></i> Libreta Apuntes
+                        <i class="fa-solid fa-book-journal-whills w-6 text-blue-500"></i> Libreta Apuntes
                     </button>
                     <button onclick="app.navigate('mindmap')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
-                        <i class="fa-solid fa-diagram-project w-6"></i> Mapas Mentales
+                        <i class="fa-solid fa-diagram-project w-6 text-blue-500"></i> Mapas Mentales
                     </button>
                 </div>
             </div>
         </aside>
 
         <!-- Main Content Area -->
-        <main class="flex-1 overflow-y-auto relative scroll-smooth p-4 md:p-8">
+        <main class="flex-1 overflow-y-auto relative scroll-smooth p-3 md:p-8">
             
             <!-- HOME VIEW -->
             <div id="view-home" class="view-section fade-in max-w-5xl mx-auto">
                 
                 <!-- Hero Section -->
-                <div class="text-center mt-10 mb-12">
-                    <span class="inline-block py-1 px-4 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-sm font-medium mb-6">
+                <div class="text-center mt-6 md:mt-10 mb-8 md:mb-12 px-2">
+                    <span class="inline-block py-1 px-4 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-medium mb-4">
                         ✨ Herramientas gratuitas para estudiantes
                     </span>
-                    <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-6">
+                    <h1 class="text-3xl sm:text-4xl md:text-6xl font-extrabold tracking-tight mb-4">
                         Tu caja de herramientas<br/>
                         <span class="text-brand-500">académicas</span> en un solo lugar
                     </h1>
-                    <p class="text-lg text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">
-                        Calculadoras, conversores, editores, mapas mentales y más. Todo funciona sin conexión, directo en tu navegador.
+                    <p class="text-base md:text-lg text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">
+                        Calculadoras, conversores, editores, mapas mentales y más. Todo en tu navegador.
                     </p>
                 </div>
 
                 <!-- Search Bar -->
-                <div class="max-w-3xl mx-auto mb-10">
+                <div class="max-w-3xl mx-auto mb-6 md:mb-10">
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <i class="fa-solid fa-search text-slate-400 text-lg"></i>
+                            <i class="fa-solid fa-search text-slate-400"></i>
                         </div>
-                        <input type="text" id="global-search" placeholder="Busca una herramienta: calculadora, conversor, pomodoro..." 
-                            class="block w-full pl-12 pr-4 py-4 text-lg border-none rounded-2xl bg-white dark:bg-[#1a2233] text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-brand-500 shadow-sm transition-all">
+                        <input type="text" id="global-search" placeholder="Busca una herramienta: calculadora, conversor..." 
+                            class="block w-full pl-11 pr-4 py-3 md:py-4 text-base md:text-lg border-none rounded-2xl bg-white dark:bg-[#1a2233] text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-brand-500 shadow-sm transition-all">
                     </div>
                 </div>
 
                 <!-- Ad Space Home -->
-                <div class="max-w-4xl mx-auto mb-10 flex justify-center">
-                     <div class="w-full max-w-[728px] h-[90px] bg-white dark:bg-[#151b26] border border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-center text-sm text-slate-500 dark:text-slate-500 rounded-2xl">Espacio publicitario</div>
+                <div class="max-w-4xl mx-auto mb-6 md:mb-10 flex justify-center">
+                     <div class="w-full max-w-[728px] h-[60px] md:h-[90px] bg-white dark:bg-[#151b26] border border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-center text-sm text-slate-500 rounded-2xl">Espacio publicitario</div>
                 </div>
 
                 <!-- Category Filters -->
-                <div class="flex flex-wrap gap-3 mb-8" id="category-filters">
-                    <button class="filter-btn active px-5 py-2 rounded-full font-medium text-sm transition-colors bg-brand-500 text-white shadow-md shadow-brand-500/30" data-cat="all">Todas</button>
-                    <button class="filter-btn px-5 py-2 rounded-full font-medium text-sm transition-colors bg-white dark:bg-[#1a2233] text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800" data-cat="Matemáticas">Matemáticas</button>
-                    <button class="filter-btn px-5 py-2 rounded-full font-medium text-sm transition-colors bg-white dark:bg-[#1a2233] text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800" data-cat="Desarrollo">Desarrollo</button>
-                    <button class="filter-btn px-5 py-2 rounded-full font-medium text-sm transition-colors bg-white dark:bg-[#1a2233] text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800" data-cat="Estudio">Estudio</button>
+                <div class="flex flex-wrap gap-2 mb-6" id="category-filters">
+                    <button class="filter-btn active px-4 py-1.5 rounded-full font-medium text-sm transition-colors bg-brand-500 text-white shadow-md shadow-brand-500/30" data-cat="all">Todas</button>
+                    <button class="filter-btn px-4 py-1.5 rounded-full font-medium text-sm transition-colors bg-white dark:bg-[#1a2233] text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800" data-cat="Matemáticas">Matemáticas</button>
+                    <button class="filter-btn px-4 py-1.5 rounded-full font-medium text-sm transition-colors bg-white dark:bg-[#1a2233] text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800" data-cat="Desarrollo">Desarrollo</button>
+                    <button class="filter-btn px-4 py-1.5 rounded-full font-medium text-sm transition-colors bg-white dark:bg-[#1a2233] text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800" data-cat="Estudio">Estudio</button>
                 </div>
 
                 <!-- Tools Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-20" id="tools-grid">
+                <div id="tools-grid">
                     <!-- Populated by JS -->
                 </div>
+
             </div>
 
             <!-- CALCULATOR VIEW (Multi-Mode) -->
@@ -497,31 +497,30 @@
 
             <!-- AGENDA VIEW -->
             <div id="view-agenda" class="view-section hidden fade-in max-w-6xl mx-auto w-full h-full flex flex-col relative">
-                <div class="flex items-center justify-between mb-6 flex-shrink-0">
-                    <h2 class="text-3xl font-bold"><i class="fa-solid fa-calendar-days text-brand-500 mr-2"></i> Agenda Personal</h2>
-                    <button id="agenda-add-btn" class="bg-brand-500 hover:bg-brand-600 text-white font-medium py-2 px-5 rounded-lg shadow-md transition-colors"><i class="fa-solid fa-plus mr-2"></i> Nuevo Evento</button>
+                <div class="flex items-center justify-between mb-4 flex-shrink-0">
+                    <h2 class="text-2xl md:text-3xl font-bold"><i class="fa-solid fa-calendar-days text-brand-500 mr-2"></i> Agenda Personal</h2>
+                    <button id="agenda-add-btn" class="bg-brand-500 hover:bg-brand-600 text-white font-medium py-2 px-4 rounded-lg shadow-md transition-colors text-sm"><i class="fa-solid fa-plus mr-1"></i> Nuevo Evento</button>
                 </div>
                 <!-- Agenda Container -->
-                <div class="flex-1 bg-white dark:bg-[#1a2233] rounded-3xl shadow-lg border border-slate-200 dark:border-slate-800/50 flex overflow-hidden">
-                    <!-- Calendar Left -->
-                    <div class="w-1/3 border-r border-slate-200 dark:border-slate-700/50 flex flex-col p-6">
+                <div class="flex-1 bg-white dark:bg-[#1a2233] rounded-3xl shadow-lg border border-slate-200 dark:border-slate-800/50 flex flex-col md:flex-row overflow-hidden">
+                    <!-- Calendar -->
+                    <div class="md:w-1/3 border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-700/50 flex flex-col p-4 md:p-6">
                         <div class="flex justify-between items-center mb-4">
                             <button id="cal-prev" class="p-2 rounded hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><i class="fa-solid fa-chevron-left"></i></button>
-                            <h3 id="cal-month" class="text-lg font-bold capitalize">Mes Año</h3>
+                            <h3 id="cal-month" class="text-base font-bold capitalize">Mes Año</h3>
                             <button id="cal-next" class="p-2 rounded hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><i class="fa-solid fa-chevron-right"></i></button>
                         </div>
                         <div class="grid grid-cols-7 gap-1 text-center text-xs font-bold text-slate-500 mb-2">
                             <div>L</div><div>M</div><div>X</div><div>J</div><div>V</div><div>S</div><div>D</div>
                         </div>
-                        <div id="cal-days" class="grid grid-cols-7 gap-1 flex-1 text-sm">
+                        <div id="cal-days" class="grid grid-cols-7 gap-1 text-sm">
                             <!-- Days injected here -->
                         </div>
                     </div>
-                    <!-- Events Right -->
-                    <div class="w-2/3 flex flex-col p-6 bg-slate-50 dark:bg-[#0f141e]">
-                        <h3 id="agenda-selected-date" class="text-xl font-bold mb-4 text-brand-600 dark:text-brand-400">Eventos del Día</h3>
+                    <!-- Events -->
+                    <div class="flex-1 flex flex-col p-4 md:p-6 bg-slate-50 dark:bg-[#0f141e] min-h-0">
+                        <h3 id="agenda-selected-date" class="text-lg font-bold mb-4 text-brand-600 dark:text-brand-400">Eventos del Día</h3>
                         <div id="agenda-events-list" class="flex-1 overflow-y-auto space-y-3">
-                            <!-- Events injected here -->
                             <div class="flex items-center justify-center h-full text-slate-400 text-sm">Selecciona un día en el calendario</div>
                         </div>
                     </div>
@@ -531,12 +530,12 @@
             <!-- NOTEBOOK VIEW -->
             <div id="view-notebook" class="view-section hidden fade-in max-w-7xl mx-auto w-full h-full flex flex-col relative">
                 <div class="flex items-center justify-between mb-4 flex-shrink-0">
-                    <h2 class="text-3xl font-bold"><i class="fa-solid fa-book-journal-whills text-brand-500 mr-2"></i> Libreta de Apuntes</h2>
+                    <h2 class="text-2xl md:text-3xl font-bold"><i class="fa-solid fa-book-journal-whills text-brand-500 mr-2"></i> Libreta de Apuntes</h2>
                 </div>
                 
-                <div class="flex-1 bg-white dark:bg-[#1a2233] rounded-3xl shadow-lg border border-slate-200 dark:border-slate-800/50 flex overflow-hidden">
+                <div class="flex-1 bg-white dark:bg-[#1a2233] rounded-3xl shadow-lg border border-slate-200 dark:border-slate-800/50 flex flex-col md:flex-row overflow-hidden">
                     <!-- Column 1: Subjects -->
-                    <div class="w-64 border-r border-slate-200 dark:border-slate-700/50 flex flex-col bg-slate-50 dark:bg-[#151b26]">
+                    <div class="md:w-52 border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-700/50 flex flex-col bg-slate-50 dark:bg-[#151b26]">
                         <div class="p-4 border-b border-slate-200 dark:border-slate-700/50 flex justify-between items-center">
                             <h3 class="font-bold text-sm uppercase text-slate-500 tracking-wider">Asignaturas</h3>
                             <button id="nb-add-subject" class="text-brand-500 hover:text-brand-600"><i class="fa-solid fa-circle-plus text-lg"></i></button>
@@ -547,7 +546,7 @@
                     </div>
                     
                     <!-- Column 2: Topics -->
-                    <div class="w-72 border-r border-slate-200 dark:border-slate-700/50 flex flex-col bg-slate-100 dark:bg-[#0f141e]">
+                    <div class="md:w-56 border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-700/50 flex flex-col bg-slate-100 dark:bg-[#0f141e]">
                         <div class="p-4 border-b border-slate-200 dark:border-slate-700/50 flex justify-between items-center">
                             <h3 id="nb-current-subject" class="font-bold text-sm text-slate-700 dark:text-slate-300 truncate">Selecciona Asignatura</h3>
                             <button id="nb-add-topic" class="text-brand-500 hover:text-brand-600 hidden"><i class="fa-solid fa-plus"></i> Tema</button>
@@ -556,6 +555,7 @@
                             <div class="text-center text-slate-400 text-xs mt-10">Selecciona una asignatura primero</div>
                         </div>
                     </div>
+
 
                     <!-- Column 3: Rich Text Editor -->
                     <div class="flex-1 flex flex-col relative">
