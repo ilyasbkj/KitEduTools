@@ -1614,6 +1614,9 @@ const Agenda = {
                 this.events.push({ id: doc.id, ...doc.data() });
             });
             this.renderEvents();
+        }, (error) => {
+            console.error("Error cargando eventos:", error);
+            app.toast("Error al cargar eventos. ¿Índices creados?");
         });
     },
     
@@ -1750,6 +1753,9 @@ const Notebook = {
                 this.subjects.push({ id: doc.id, ...doc.data() });
             });
             this.renderSubjects();
+        }, (error) => {
+            console.error("Error cargando asignaturas:", error);
+            alert("Error cargando asignaturas: " + error.message);
         });
     },
     
@@ -1787,9 +1793,10 @@ const Notebook = {
                 name: name,
                 createdAt: new Date()
             });
+            app.toast('Asignatura creada');
         } catch (e) {
             console.error(e);
-            app.toast('Error al crear asignatura');
+            alert('Error al crear asignatura: ' + e.message);
         }
     },
     
@@ -1837,6 +1844,9 @@ const Notebook = {
                 this.topics.push({ id: doc.id, ...doc.data() });
             });
             this.renderTopics();
+        }, (error) => {
+            console.error("Error cargando temas:", error);
+            alert("Error cargando temas: " + error.message);
         });
     },
     
@@ -1876,9 +1886,10 @@ const Notebook = {
                 content: '',
                 createdAt: new Date()
             });
+            app.toast('Tema creado');
         } catch (e) {
             console.error(e);
-            app.toast('Error al crear tema');
+            alert('Error al crear tema: ' + e.message);
         }
     },
     
