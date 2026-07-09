@@ -299,32 +299,57 @@
 
             <!-- MINDMAP VIEW -->
             <div id="view-mindmap" class="view-section hidden fade-in h-full flex flex-col relative">
+                <!-- Top bar -->
                 <div class="flex items-center justify-between mb-4 flex-shrink-0">
-                    <h2 class="text-3xl font-bold"><i class="fa-solid fa-diagram-project text-brand-500 mr-2"></i> Mapas Mentales</h2>
-                    <div class="flex gap-2">
-                        <button id="mm-add-root" class="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 dark:bg-[#1a2233] dark:hover:bg-[#252f44] dark:border-slate-700 rounded-lg font-medium transition-colors shadow-sm"><i class="fa-solid fa-plus mr-1"></i> Nodo Raíz</button>
-                        
+                    <div class="flex items-center gap-3">
+                        <h2 class="text-2xl font-bold"><i class="fa-solid fa-diagram-project text-brand-500 mr-2"></i> Mapas Mentales</h2>
+                        <span id="mm-current-name" class="text-slate-400 font-medium text-sm"></span>
+                    </div>
+                    <div class="flex gap-2" id="mm-canvas-actions">
+                        <button id="mm-add-root" class="px-3 py-2 bg-white hover:bg-slate-50 border border-slate-200 dark:bg-[#1a2233] dark:hover:bg-[#252f44] dark:border-slate-700 rounded-lg text-sm font-medium transition-colors shadow-sm"><i class="fa-solid fa-plus mr-1"></i> Nodo Raíz</button>
                         <input type="file" id="mm-import-input" accept=".json" class="hidden">
-                        <button id="mm-import" class="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 dark:bg-[#1a2233] dark:hover:bg-[#252f44] dark:border-slate-700 rounded-lg font-medium transition-colors shadow-sm"><i class="fa-solid fa-file-import mr-1"></i> Importar</button>
-                        
-                        <button id="mm-export-json" class="px-4 py-2 bg-brand-50 text-brand-600 border border-brand-200 hover:bg-brand-100 dark:bg-brand-900/20 dark:text-brand-400 dark:border-brand-900/50 dark:hover:bg-brand-900/40 rounded-lg font-medium transition-colors"><i class="fa-solid fa-file-export mr-1"></i> Exportar</button>
-                        
-                        <button id="mm-save-cloud" onclick="window.MindMap.saveToCloud()" class="px-4 py-2 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-900/50 dark:hover:bg-blue-900/40 rounded-lg font-medium transition-colors"><i class="fa-solid fa-cloud-arrow-up mr-1"></i> Guardar</button>
-                        
-                        <button id="mm-clear" class="px-4 py-2 bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900/50 dark:hover:bg-red-900/40 rounded-lg font-medium transition-colors"><i class="fa-solid fa-trash-can mr-1"></i> Limpiar</button>
+                        <button id="mm-import" class="px-3 py-2 bg-white hover:bg-slate-50 border border-slate-200 dark:bg-[#1a2233] dark:hover:bg-[#252f44] dark:border-slate-700 rounded-lg text-sm font-medium transition-colors shadow-sm"><i class="fa-solid fa-file-import mr-1"></i> Importar</button>
+                        <button id="mm-export-json" class="px-3 py-2 bg-brand-50 text-brand-600 border border-brand-200 hover:bg-brand-100 dark:bg-brand-900/20 dark:text-brand-400 dark:border-brand-900/50 dark:hover:bg-brand-900/40 rounded-lg text-sm font-medium transition-colors"><i class="fa-solid fa-file-export mr-1"></i> Exportar</button>
+                        <button id="mm-save-cloud" onclick="window.MindMap.saveToCloud()" class="px-3 py-2 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-900/50 dark:hover:bg-blue-900/40 rounded-lg text-sm font-medium transition-colors"><i class="fa-solid fa-cloud-arrow-up mr-1"></i> Guardar</button>
+                        <button id="mm-clear" class="px-3 py-2 bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900/50 dark:hover:bg-red-900/40 rounded-lg text-sm font-medium transition-colors"><i class="fa-solid fa-trash-can mr-1"></i> Limpiar</button>
+                    </div>
+                </div>
+
+                <!-- Two-pane layout -->
+                <div class="flex flex-1 gap-4 overflow-hidden min-h-0">
+
+                    <!-- Left panel: Maps list -->
+                    <div class="w-56 flex-shrink-0 bg-white dark:bg-[#151b26] border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col overflow-hidden shadow-sm">
+                        <div class="p-3 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Mis mapas</span>
+                            <button onclick="window.MindMap.addMap()" class="w-7 h-7 rounded-lg bg-brand-500 text-white flex items-center justify-center hover:bg-brand-600 transition-colors shadow-sm shadow-brand-500/30" title="Nuevo mapa">
+                                <i class="fa-solid fa-plus text-xs"></i>
+                            </button>
+                        </div>
+                        <div id="mm-maps-list" class="flex-1 overflow-y-auto p-2 space-y-1">
+                            <div class="text-center text-slate-400 text-xs mt-6 px-2">Crea tu primer mapa con el botón +</div>
+                        </div>
                     </div>
 
-                </div>
-                
-                <!-- MindMap Area -->
-                <div id="mindmap-container" class="flex-1 bg-slate-100/50 dark:bg-[#111827] rounded-2xl border border-slate-200 dark:border-slate-800 relative overflow-hidden shadow-inner cursor-crosshair">
-                    <svg id="mindmap-svg" class="w-full h-full absolute inset-0 pointer-events-none z-10"></svg>
-                    <div id="mindmap-nodes" class="absolute inset-0 z-20"></div>
+                    <!-- Right panel: Canvas -->
+                    <div class="flex-1 flex flex-col min-w-0">
+                        <!-- Empty state -->
+                        <div id="mm-empty-state" class="flex-1 flex flex-col items-center justify-center text-slate-400 gap-3 bg-slate-100/50 dark:bg-[#111827] rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800">
+                            <i class="fa-solid fa-diagram-project text-5xl opacity-20"></i>
+                            <p class="font-medium text-sm">Selecciona o crea un mapa</p>
+                        </div>
+                        <!-- Canvas -->
+                        <div id="mm-canvas-wrapper" class="flex-1 hidden" style="min-height:0">
+                            <div id="mindmap-container" class="w-full h-full bg-slate-100/50 dark:bg-[#111827] rounded-2xl border border-slate-200 dark:border-slate-800 relative overflow-hidden shadow-inner cursor-crosshair">
+                                <svg id="mindmap-svg" class="w-full h-full absolute inset-0 pointer-events-none z-10"></svg>
+                                <div id="mindmap-nodes" class="absolute inset-0 z-20"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Floating Mini Menu (Hidden by default) -->
+                <!-- Floating Mini Menu -->
                 <div id="mm-toolbar" class="hidden absolute z-50 bg-white dark:bg-[#1f2937] border border-slate-200 dark:border-slate-700 shadow-xl rounded-xl p-2 flex flex-col gap-2 transition-opacity duration-200 w-[200px]">
-                    <!-- Text Formatting & Actions -->
                     <div class="flex justify-between items-center w-full">
                         <div class="flex gap-1">
                             <button class="w-8 h-8 rounded hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-300" onmousedown="event.preventDefault(); document.execCommand('bold', false, null)" title="Negrita"><i class="fa-solid fa-bold"></i></button>
@@ -336,10 +361,7 @@
                             <button id="mm-tool-del" class="w-8 h-8 rounded hover:bg-red-50 text-red-600 dark:hover:bg-red-900/30 dark:text-red-400 flex items-center justify-center" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
                         </div>
                     </div>
-                    
                     <div class="w-full h-px bg-slate-200 dark:bg-slate-700"></div>
-                    
-                    <!-- Color & Size -->
                     <div class="flex flex-col gap-2 w-full mt-1">
                         <div class="flex justify-between items-center w-full">
                             <span class="text-xs text-slate-500 font-medium">Fondo:</span>
@@ -363,7 +385,9 @@
                     </div>
                 </div>
             </div>
+
               <!-- POMODORO VIEW -->
+
             <div id="view-pomodoro" class="view-section hidden fade-in max-w-2xl mx-auto w-full">
                 <div class="mb-6">
                     <h2 class="text-3xl font-bold"><i class="fa-solid fa-stopwatch text-brand-500 mr-2"></i> Temporizador Pomodoro</h2>

@@ -788,6 +788,9 @@ const MindMap = {
     offsetY: 0,
     selectedNodeId: null,
     nodeCounter: 1,
+    // Multi-map state
+    maps: [],
+    currentMapId: null,
 
     init() {
         this.container = document.getElementById('mindmap-container');
@@ -796,7 +799,7 @@ const MindMap = {
         this.toolbar = document.getElementById('mm-toolbar');
 
         document.getElementById('mm-add-root').onclick = () => this.addNode(null, true);
-        document.getElementById('mm-clear').onclick = () => this.clearMap();
+        document.getElementById('mm-clear').onclick = () => { if (confirm('\u00bfVaciar el mapa actual?')) { this.clearMap(false); this.saveToCloud(); } };
         document.getElementById('mm-export-json').onclick = () => this.exportJSON();
         
         const importBtn = document.getElementById('mm-import');
@@ -824,7 +827,121 @@ const MindMap = {
             }
         });
 
-        this.clearMap();
+        // Don't auto-clearMap; wait for user to select/create a map
+    },
+
+    // ---- Multi-map management ----
+    
+    addMap() {
+        if (!AuthManager.currentUser) return;
+        ModalManager.show({
+            title: 'Nuevo Mapa Mental',
+            inputs: [{ label: 'Nombre del mapa', placeholder: 'Ej. Tema 1: C\u00e9lulas' }],
+            confirmText: 'Crear',
+            onConfirm: async (values) => {
+                const name = values[0];
+                try {
+                    const docRef = await window.fb.addDoc(window.fb.collection(window.fb.db, 'mindmaps'), {
+                        uid: AuthManager.currentUser.uid,
+                        name: name,
+                        data: JSON.stringify({ nodes: [], connections: [] }),
+                        createdAt: new Date()
+                    });
+                    app.toast('Mapa creado');
+                    this.selectMap(docRef.id, name);
+                } catch (e) {
+                    console.error(e);
+                    app.toast('Error al crear mapa');
+                }
+            }
+        });
+    },
+
+    async loadFromCloud() {
+        if (!AuthManager.currentUser || !window.fb.db) return;
+        
+        const q = window.fb.query(
+            window.fb.collection(window.fb.db, 'mindmaps'),
+            window.fb.where('uid', '==', AuthManager.currentUser.uid),
+            window.fb.orderBy('createdAt', 'asc')
+        );
+
+        window.fb.onSnapshot(q, (snapshot) => {
+            this.maps = [];
+            snapshot.forEach(doc => this.maps.push({ id: doc.id, ...doc.data() }));
+            this.renderMapList();
+        }, (err) => { console.error(err); });
+    },
+
+    renderMapList() {
+        const listEl = document.getElementById('mm-maps-list');
+        if (!listEl) return;
+        listEl.innerHTML = '';
+
+        if (this.maps.length === 0) {
+            listEl.innerHTML = '<div class="text-center text-slate-400 text-xs mt-6 px-2">Crea tu primer mapa con el bot\u00f3n +</div>';
+            return;
+        }
+
+        this.maps.forEach(map => {
+            const isSelected = this.currentMapId === map.id;
+            const el = document.createElement('div');
+            el.className = `p-2 rounded-lg cursor-pointer transition-colors flex justify-between items-center group text-sm ${isSelected ? 'bg-brand-50 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400 font-bold' : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'}`;
+            el.innerHTML = `
+                <span class="truncate flex-1" onclick="window.MindMap.selectMap('${map.id}', '${map.name.replace(/'/g, "\\'")}')"><i class="fa-solid fa-diagram-project mr-2 opacity-50"></i>${map.name}</span>
+                <button class="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-opacity pl-1 flex-shrink-0" onclick="window.MindMap.deleteMap('${map.id}')"><i class="fa-solid fa-trash-can text-xs"></i></button>
+            `;
+            listEl.appendChild(el);
+        });
+    },
+
+    async selectMap(id, name) {
+        this.currentMapId = id;
+        document.getElementById('mm-current-name').textContent = '— ' + name;
+        
+        // Show canvas, hide empty state
+        document.getElementById('mm-empty-state').classList.add('hidden');
+        document.getElementById('mm-canvas-wrapper').classList.remove('hidden');
+        document.getElementById('mm-canvas-wrapper').classList.add('flex');
+
+        this.renderMapList();
+
+        // Load data
+        const map = this.maps.find(m => m.id === id);
+        if (map && map.data) {
+            const data = JSON.parse(map.data);
+            this._loadData(data);
+        } else {
+            this.clearMap(false);
+        }
+    },
+
+    async deleteMap(id) {
+        if (!confirm('\u00bfEliminar este mapa?')) return;
+        try {
+            await window.fb.deleteDoc(window.fb.doc(window.fb.db, 'mindmaps', id));
+            if (this.currentMapId === id) {
+                this.currentMapId = null;
+                this.clearMap(false);
+                document.getElementById('mm-empty-state').classList.remove('hidden');
+                document.getElementById('mm-canvas-wrapper').classList.add('hidden');
+                document.getElementById('mm-canvas-wrapper').classList.remove('flex');
+                document.getElementById('mm-current-name').textContent = '';
+            }
+            app.toast('Mapa eliminado');
+        } catch (e) { console.error(e); }
+    },
+
+    async saveToCloud() {
+        if (!AuthManager.currentUser || !window.fb.db || !this.currentMapId) return;
+        const data = this.getMapData();
+        try {
+            await window.fb.updateDoc(window.fb.doc(window.fb.db, 'mindmaps', this.currentMapId), {
+                data: JSON.stringify(data),
+                updatedAt: new Date()
+            });
+            app.toast('Mapa guardado \u2713');
+        } catch (e) { console.error(e); }
     },
 
     addNode(parentId = null, isRoot = false) {
@@ -1166,38 +1283,6 @@ const MindMap = {
         };
     },
     
-    async saveToCloud() {
-        if (!AuthManager.currentUser || !window.fb || !window.fb.db) return;
-        const uid = AuthManager.currentUser.uid;
-        const data = this.getMapData();
-        try {
-            await window.fb.setDoc(window.fb.doc(window.fb.db, 'mindmaps', uid), {
-                data: JSON.stringify(data),
-                updatedAt: new Date()
-            });
-            app.toast('Mapa guardado en la nube ☁️');
-        } catch (e) {
-            console.error(e);
-        }
-    },
-    
-    async loadFromCloud() {
-        if (!AuthManager.currentUser || !window.fb || !window.fb.db) return;
-        const uid = AuthManager.currentUser.uid;
-        try {
-            const docSnap = await window.fb.getDoc(window.fb.doc(window.fb.db, 'mindmaps', uid));
-            if (docSnap.exists()) {
-                const data = JSON.parse(docSnap.data().data);
-                if (data.nodes && data.nodes.length > 0) {
-                    this._loadData(data);
-                    app.toast('Mapa cargado de la nube ☁️');
-                }
-            }
-        } catch (e) {
-            console.error(e);
-        }
-    },
-    
     _loadData(data) {
         this.clearMap(false);
         data.nodes.forEach(n => {
@@ -1236,6 +1321,7 @@ const MindMap = {
         this.renderLines();
     }
 };
+
 
 
 // ==========================================
@@ -1693,6 +1779,17 @@ const AuthManager = {
             Notebook.renderTopics();
             const nbEditor = document.getElementById('nb-editor');
             if (nbEditor) nbEditor.innerHTML = '';
+            
+            MindMap.maps = [];
+            MindMap.currentMapId = null;
+            MindMap.clearMap(false);
+            MindMap.renderMapList();
+            const emptyState = document.getElementById('mm-empty-state');
+            const canvasWrapper = document.getElementById('mm-canvas-wrapper');
+            if (emptyState) emptyState.classList.remove('hidden');
+            if (canvasWrapper) { canvasWrapper.classList.add('hidden'); canvasWrapper.classList.remove('flex'); }
+            const mmName = document.getElementById('mm-current-name');
+            if (mmName) mmName.textContent = '';
             
             app.toast('Sesión cerrada');
             app.navigate('home');
