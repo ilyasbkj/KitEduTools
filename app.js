@@ -56,6 +56,7 @@ const app = {
         AuthManager.init();
         Agenda.init();
         Notebook.init();
+        this.initMobileMenu();
         
         this.navigate('home');
     },
@@ -129,6 +130,30 @@ const app = {
         }
         
         this.currentView = viewId;
+        
+        // Close mobile menu if open
+        const sidebarEl = document.getElementById('sidebar');
+        const overlayEl = document.getElementById('mobile-overlay');
+        if (sidebarEl && overlayEl && !sidebarEl.classList.contains('-translate-x-full')) {
+            sidebarEl.classList.add('-translate-x-full');
+            overlayEl.classList.add('hidden');
+        }
+    },
+
+    initMobileMenu() {
+        const btn = document.getElementById('mobile-menu-btn');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('mobile-overlay');
+        
+        if (!btn || !sidebar || !overlay) return;
+        
+        const toggleMenu = () => {
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        };
+        
+        btn.addEventListener('click', toggleMenu);
+        overlay.addEventListener('click', toggleMenu);
     },
 
     initFilters() {

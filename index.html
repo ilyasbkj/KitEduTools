@@ -52,11 +52,16 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 <!-- Logo -->
-                <div class="flex-shrink-0 flex items-center cursor-pointer" onclick="app.navigate('home')">
-                    <div class="w-8 h-8 rounded-lg bg-brand-500 flex items-center justify-center text-white mr-3 shadow-lg shadow-brand-500/30">
-                        <i class="fa-solid fa-graduation-cap"></i>
+                <div class="flex-shrink-0 flex items-center">
+                    <button id="mobile-menu-btn" class="md:hidden mr-3 p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 transition-colors" title="Menú">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                    <div class="flex items-center cursor-pointer" onclick="window.app.navigate('home')">
+                        <div class="w-8 h-8 rounded-lg bg-brand-500 flex items-center justify-center text-white mr-3 shadow-lg shadow-brand-500/30">
+                            <i class="fa-solid fa-graduation-cap"></i>
+                        </div>
+                        <span class="font-bold text-xl tracking-tight hidden sm:block">EduToolKit</span>
                     </div>
-                    <span class="font-bold text-xl tracking-tight">EduToolKit</span>
                 </div>
                 <!-- Theme & Profile -->
                 <div class="flex items-center gap-3">
@@ -80,10 +85,13 @@
     </nav>
 
     <!-- Main Container (Sidebar + Content) -->
-    <div class="flex flex-1 overflow-hidden">
+    <div class="flex flex-1 overflow-hidden relative">
         
+        <!-- Mobile Sidebar Overlay -->
+        <div id="mobile-overlay" class="hidden absolute inset-0 bg-slate-900/50 z-40 md:hidden backdrop-blur-sm transition-opacity"></div>
+
         <!-- Sidebar Navigation (Hidden on Home) -->
-        <aside id="sidebar" class="w-64 bg-white dark:bg-[#151b26] border-r border-slate-200 dark:border-slate-800 flex-shrink-0 hidden flex-col transition-colors duration-300 overflow-y-auto">
+        <aside id="sidebar" class="absolute md:relative z-50 w-64 bg-white dark:bg-[#151b26] border-r border-slate-200 dark:border-slate-800 flex-shrink-0 hidden flex-col transition-transform duration-300 ease-in-out h-full overflow-y-auto -translate-x-full md:translate-x-0">
             <div class="p-4">
                 <button onclick="app.navigate('home')" class="w-full flex items-center px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white mb-4">
                     <i class="fa-solid fa-arrow-left mr-2"></i> Volver al Inicio
@@ -122,7 +130,6 @@
                         <i class="fa-solid fa-book-journal-whills w-6"></i> Libreta Apuntes
                     </button>
                 </div>
-            </div>
             </div>
         </aside>
 
