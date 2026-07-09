@@ -17,27 +17,20 @@ body { transition: background-color 0.3s ease, color 0.3s ease; }
 }
 
 /* =============================================
-   LAYOUT — Make views fill the remaining height
-   ============================================= */
+   LAYOUT — ensure views fill the available height
+   =============================================
+   main gets its height from the parent flex container via align-items:stretch.
+   Children with h-full need main to have a definite height.
+   We DON'T make main a flex column — the HTML handles that per-view.
+*/
 main {
-  display: flex;
-  flex-direction: column;
   height: 100%;
-  overflow-y: auto;
 }
 
-/* Every view-section that is NOT the home view and NOT hidden
-   should fill the full height of main */
-.view-section:not(#view-home):not(.hidden) {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Home view stays auto-height (scrollable) */
+/* Home view never needs h-full */
 #view-home {
-  flex: none;
+  height: auto;
+  min-height: unset;
 }
 
 /* =============================================
