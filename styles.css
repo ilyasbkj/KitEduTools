@@ -158,12 +158,20 @@ body { transition: background-color 0.3s ease, color 0.3s ease; }
    AGENDA — responsive two-pane
    ============================================= */
 @media (max-width: 768px) {
-  #view-agenda > .flex.gap-6 {
-    flex-direction: column;
-    gap: 12px;
-  }
-  #view-agenda .w-80.flex-shrink-0 {
+  #view-agenda .md\:w-1\/3 {
     width: 100%;
+  }
+}
+
+/* La vista semanal no debe estirarse a la altura de toda la tarjeta:
+   las celdas usan aspect-square, así que basta con no forzar la columna
+   a crecer más de lo necesario. */
+#agenda-calendar-col.md\:self-start {
+  align-self: flex-start;
+}
+@media (min-width: 768px) {
+  #agenda-calendar-col.md\:self-start #cal-days {
+    max-width: 360px;
   }
 }
 

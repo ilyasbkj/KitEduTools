@@ -147,7 +147,7 @@ const app = {
             } else {
                 overlay.classList.add('hidden');
                 // Trigger load if necessary
-                if (viewId === 'agenda') Agenda.loadEvents();
+                if (viewId === 'agenda') { Agenda.loadEvents(); Notebook.loadSubjects(); }
                 if (viewId === 'notebook') Notebook.loadSubjects();
                 if (viewId === 'mindmap') MindMap.loadFromCloud();
             }
@@ -1227,9 +1227,17 @@ const MindMap = {
             if (this._activePointers.size >= 2) return;
         }
 
-        this.selectNode(id);
+        // Selecciona el nodo (resalta el borde) pero NO muestra el mini menú
+        // todavía: solo debe aparecer si esto termina siendo un clic, no un arrastre.
+        this.selectNode(id, { showToolbar: false });
         this.dragNode = id;
         this.toolbar.classList.add('hidden');
+
+        // Umbral de movimiento para distinguir un clic de un arrastre real.
+        this._dragStartClientX = e.clientX;
+        this._dragStartClientY = e.clientY;
+        this._dragMoved = false;
+        const DRAG_THRESHOLD = 4; // px
 
         const node = this.nodes.find(n => n.id === id);
         const worldPointer = this.screenToWorld(e.clientX, e.clientY);
@@ -1238,14 +1246,29 @@ const MindMap = {
 
         el.setPointerCapture(e.pointerId);
 
-        const moveHandler = (ev) => this.drag(ev);
+        const moveHandler = (ev) => {
+            if (!this._dragMoved) {
+                const dx = ev.clientX - this._dragStartClientX;
+                const dy = ev.clientY - this._dragStartClientY;
+                if (Math.hypot(dx, dy) > DRAG_THRESHOLD) this._dragMoved = true;
+            }
+            this.drag(ev);
+        };
         const upHandler = (ev) => {
             el.removeEventListener('pointermove', moveHandler);
             el.removeEventListener('pointerup', upHandler);
             el.removeEventListener('pointercancel', upHandler);
             this.dragNode = null;
-            this.updateToolbarPosition();
-            this.saveToCloud();
+
+            if (this._dragMoved) {
+                // Fue un arrastre real: guarda la nueva posición pero mantiene
+                // el mini menú oculto, tal y como pasaba mientras se arrastraba.
+                this.saveToCloud();
+            } else {
+                // Fue un clic (sin arrastre real): muestra el mini menú de configuración.
+                this.updateToolbarPosition();
+            }
+            this._dragMoved = false;
         };
 
         el.addEventListener('pointermove', moveHandler);
@@ -1255,6 +1278,7 @@ const MindMap = {
 
     drag(e) {
         if (!this.dragNode) return;
+        if (!this._dragMoved) return; // no mover hasta superar el umbral de arrastre
 
         const el = document.getElementById(this.dragNode);
         const node = this.nodes.find(n => n.id === this.dragNode);
@@ -1273,7 +1297,8 @@ const MindMap = {
         this.renderLines();
     },
 
-    selectNode(id) {
+    selectNode(id, opts = {}) {
+        const { showToolbar = true } = opts;
         this.selectedNodeId = id;
         
         document.querySelectorAll('.mindmap-node').forEach(n => {
@@ -1296,7 +1321,11 @@ const MindMap = {
                     document.getElementById('mm-color-text').value = this.rgbToHex(nodeData.textColor);
                 }
                 
-                this.updateToolbarPosition();
+                if (showToolbar) {
+                    this.updateToolbarPosition();
+                } else {
+                    this.toolbar.classList.add('hidden');
+                }
             }
         } else {
             this.toolbar.classList.add('hidden');
@@ -1324,10 +1353,33 @@ const MindMap = {
         const elRect = el.getBoundingClientRect();
         const refEl = this.toolbar.offsetParent || document.getElementById('view-mindmap');
         const refRect = refEl.getBoundingClientRect();
+        const gap = 8;
 
-        let x = elRect.left - refRect.left;
-        let y = elRect.top - refRect.top - 100;
-        if (y < 0) y = elRect.bottom - refRect.top + 8; // si no cabe arriba, mostrar debajo
+        // Medir el tamaño real del menú (ya está visible, así que offsetWidth/Height son fiables)
+        const tbWidth = this.toolbar.offsetWidth || 200;
+        const tbHeight = this.toolbar.offsetHeight || 180;
+
+        const nodeTop = elRect.top - refRect.top;
+        const nodeBottom = elRect.bottom - refRect.top;
+        const nodeLeft = elRect.left - refRect.left;
+
+        // Preferir encima del nodo; si no hay espacio suficiente arriba, colocar debajo.
+        let y;
+        if (nodeTop - tbHeight - gap >= 0) {
+            y = nodeTop - tbHeight - gap;
+        } else {
+            y = nodeBottom + gap;
+            // Si tampoco cabe debajo (nodo muy alto en un lienzo pequeño), ajusta al límite inferior visible.
+            const maxY = refRect.height - tbHeight - gap;
+            if (y > maxY && maxY > 0) y = maxY;
+            if (y < 0) y = gap;
+        }
+
+        // Ajustar horizontalmente para que el menú no se salga del lienzo.
+        let x = nodeLeft;
+        const maxX = refRect.width - tbWidth - gap;
+        if (x > maxX) x = Math.max(gap, maxX);
+        if (x < gap) x = gap;
 
         this.toolbar.style.left = x + 'px';
         this.toolbar.style.top = y + 'px';
@@ -2051,11 +2103,30 @@ const ModalManager = {
             const label = document.createElement('label');
             label.className = 'block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1';
             label.textContent = inp.label;
-            
-            const field = document.createElement('input');
-            field.type = inp.type || 'text';
-            field.placeholder = inp.placeholder || '';
-            field.className = 'w-full bg-slate-50 dark:bg-[#0f141e] border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-shadow';
+
+            let field;
+            if (inp.type === 'select') {
+                field = document.createElement('select');
+                field.className = 'w-full bg-slate-50 dark:bg-[#0f141e] border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-shadow';
+                (inp.options || []).forEach(opt => {
+                    const optionEl = document.createElement('option');
+                    optionEl.value = opt.value;
+                    optionEl.textContent = opt.label;
+                    if (inp.value !== undefined && inp.value === opt.value) optionEl.selected = true;
+                    field.appendChild(optionEl);
+                });
+            } else if (inp.type === 'color') {
+                field = document.createElement('input');
+                field.type = 'color';
+                field.value = inp.value || '#f64b31';
+                field.className = 'w-14 h-10 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer bg-transparent p-0';
+            } else {
+                field = document.createElement('input');
+                field.type = inp.type || 'text';
+                field.placeholder = inp.placeholder || '';
+                if (inp.value !== undefined) field.value = inp.value;
+                field.className = 'w-full bg-slate-50 dark:bg-[#0f141e] border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-shadow';
+            }
             field.id = `modal-inp-${idx}`;
             
             wrapper.appendChild(label);
@@ -2066,8 +2137,12 @@ const ModalManager = {
         
         this.btnConfirm.textContent = confirmText || 'Aceptar';
         this.btnConfirm.onclick = () => {
-            const values = inputElements.map(el => el.value.trim());
-            if (values.some(v => v === '')) {
+            const values = inputElements.map((el, idx) => {
+                const type = inputs[idx].type;
+                return (type === 'select' || type === 'color') ? el.value : el.value.trim();
+            });
+            const missing = inputs.some((inp, idx) => !inp.optional && values[idx] === '');
+            if (missing) {
                 app.toast('Por favor, rellena los campos.');
                 return;
             }
@@ -2103,15 +2178,23 @@ const ThemeManager = {
     presets: ['#f64b31', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899', '#64748b', '#0f172a', '#dc2626', '#14b8a6'],
     currentHex: null,
 
+    bgPresets: ['#f8fafc', '#eef2ff', '#fef9c3', '#dcfce7', '#fee2e2', '#e0f2fe', '#f5f5f4', '#0f172a', '#111827', '#1e293b', '#18181b', '#312e81'],
+    currentBgHex: null,
+
     init() {
         this.btn = document.getElementById('btn-theme-color');
         this.popover = document.getElementById('theme-color-popover');
         this.swatchesEl = document.getElementById('theme-color-swatches');
         this.customInput = document.getElementById('theme-color-custom');
         this.resetBtn = document.getElementById('theme-color-reset');
+        this.bgSwatchesEl = document.getElementById('bg-color-swatches');
+        this.bgCustomInput = document.getElementById('bg-color-custom');
+        this.bgResetBtn = document.getElementById('bg-color-reset');
+        this.navEl = document.querySelector('nav');
         if (!this.btn) return;
 
         this.renderSwatches();
+        this.renderBgSwatches();
 
         this.btn.onclick = (e) => {
             e.stopPropagation();
@@ -2126,10 +2209,16 @@ const ThemeManager = {
         this.customInput.addEventListener('input', (e) => this.setColor(e.target.value));
         this.resetBtn.onclick = () => this.setColor(this.DEFAULT_HEX);
 
+        if (this.bgCustomInput) this.bgCustomInput.addEventListener('input', (e) => this.setPageBg(e.target.value));
+        if (this.bgResetBtn) this.bgResetBtn.onclick = () => this.resetPageBg();
+
         // Aplica una preferencia guardada localmente mientras se resuelve el login,
         // para evitar parpadeos de color al cargar.
         const cached = localStorage.getItem('accentColor');
         if (cached) this.applyColor(cached, { persist: false });
+
+        const cachedBg = localStorage.getItem('pageBgColor');
+        if (cachedBg) this.applyPageBg(cachedBg, { persist: false });
     },
 
     renderSwatches() {
@@ -2142,6 +2231,20 @@ const ThemeManager = {
             btn.title = hex;
             btn.onclick = () => this.setColor(hex);
             this.swatchesEl.appendChild(btn);
+        });
+    },
+
+    renderBgSwatches() {
+        if (!this.bgSwatchesEl) return;
+        this.bgSwatchesEl.innerHTML = '';
+        this.bgPresets.forEach(hex => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'w-7 h-7 rounded-full border-2 border-white dark:border-slate-800 shadow ring-1 ring-slate-200 dark:ring-slate-700 hover:scale-110 transition-transform';
+            btn.style.backgroundColor = hex;
+            btn.title = hex;
+            btn.onclick = () => this.setPageBg(hex);
+            this.bgSwatchesEl.appendChild(btn);
         });
     },
 
@@ -2160,6 +2263,54 @@ const ThemeManager = {
         localStorage.setItem('accentColor', hex);
 
         if (persist) this.saveToAccount(hex);
+    },
+
+    setPageBg(hex) {
+        this.applyPageBg(hex, { persist: true });
+    },
+
+    // Personaliza el color de fondo de la web (cuerpo de la página + barra de navegación),
+    // dejando el resto de tarjetas/paneles con sus estilos habituales.
+    applyPageBg(hex, opts = {}) {
+        const { persist = false } = opts;
+        if (hex) {
+            document.body.style.backgroundColor = hex;
+            const { r, g, b } = this.hexToRgb(hex);
+            if (this.navEl) this.navEl.style.backgroundColor = `rgba(${r}, ${g}, ${b}, 0.9)`;
+            localStorage.setItem('pageBgColor', hex);
+        } else {
+            document.body.style.backgroundColor = '';
+            if (this.navEl) this.navEl.style.backgroundColor = '';
+            localStorage.removeItem('pageBgColor');
+        }
+        this.currentBgHex = hex;
+        if (this.bgCustomInput) this.bgCustomInput.value = hex || '#f8fafc';
+
+        if (persist) this.savePageBgToAccount(hex);
+    },
+
+    resetPageBg() {
+        this.applyPageBg(null, { persist: false });
+        this.savePageBgToAccount(null);
+    },
+
+    async savePageBgToAccount(hex) {
+        if (!AuthManager.currentUser) {
+            app.toast('Inicia sesión para guardar tu fondo de cuenta');
+            return;
+        }
+        if (!window.fb || !window.fb.db) return;
+        try {
+            await window.fb.setDoc(
+                window.fb.doc(window.fb.db, 'userPrefs', AuthManager.currentUser.uid),
+                { pageBgColor: hex || null },
+                { merge: true }
+            );
+            app.toast('Fondo guardado en tu cuenta ✓');
+        } catch (e) {
+            console.error(e);
+            app.toast('No se pudo guardar el fondo');
+        }
     },
 
     async saveToAccount(hex) {
@@ -2185,8 +2336,10 @@ const ThemeManager = {
         if (!window.fb || !window.fb.db) return;
         try {
             const snap = await window.fb.getDoc(window.fb.doc(window.fb.db, 'userPrefs', uid));
-            if (snap.exists() && snap.data().accentColor) {
-                this.applyColor(snap.data().accentColor, { persist: false });
+            if (snap.exists()) {
+                const data = snap.data();
+                if (data.accentColor) this.applyColor(data.accentColor, { persist: false });
+                if (data.pageBgColor) this.applyPageBg(data.pageBgColor, { persist: false });
             }
         } catch (e) { console.error(e); }
     },
@@ -2194,6 +2347,7 @@ const ThemeManager = {
     resetToDefault() {
         this.applyColor(this.DEFAULT_HEX, { persist: false });
         localStorage.removeItem('accentColor');
+        this.applyPageBg(null, { persist: false });
     },
 
     // ---- Generación de paleta a partir de un color base (tono 500) ----
@@ -2387,6 +2541,8 @@ const Agenda = {
         this.nextBtn = document.getElementById('cal-next');
         if (!this.prevBtn) return;
 
+        this.calendarCol = document.getElementById('agenda-calendar-col');
+
         this.viewMode = localStorage.getItem('agendaViewMode') === 'week' ? 'week' : 'month';
 
         const monthBtn = document.getElementById('agenda-view-month');
@@ -2396,6 +2552,7 @@ const Agenda = {
             weekBtn.onclick = () => this.setViewMode('week');
         }
         this.updateViewToggleUI();
+        this.updateLayoutForMode();
         
         this.prevBtn.onclick = () => {
             if (this.viewMode === 'week') {
@@ -2423,7 +2580,19 @@ const Agenda = {
         this.viewMode = mode;
         localStorage.setItem('agendaViewMode', mode);
         this.updateViewToggleUI();
+        this.updateLayoutForMode();
         this.renderCalendar();
+    },
+
+    // La vista semanal no necesita una columna tan alta como la mensual
+    // (antes se estiraba a la altura de toda la tarjeta y quedaba muy alargada).
+    updateLayoutForMode() {
+        if (!this.calendarCol) return;
+        if (this.viewMode === 'week') {
+            this.calendarCol.classList.add('md:self-start');
+        } else {
+            this.calendarCol.classList.remove('md:self-start');
+        }
     },
 
     updateViewToggleUI() {
@@ -2486,9 +2655,14 @@ const Agenda = {
         for (let i = 1; i <= daysInMonth; i++) {
             const isSelected = this.selectedDate.getDate() === i && this.selectedDate.getMonth() === month && this.selectedDate.getFullYear() === year;
             const isToday = this.isSameDay(new Date(year, month, i), new Date());
+            const dateString = this.toDateString(new Date(year, month, i));
+            const dots = this.getDayDotColors(dateString);
             const btn = document.createElement('button');
-            btn.className = `w-full aspect-square flex items-center justify-center rounded-lg text-sm transition-colors hover:bg-slate-200 dark:hover:bg-slate-700 ${isSelected ? 'bg-brand-500 text-white font-bold shadow-md hover:bg-brand-600 dark:hover:bg-brand-600' : (isToday ? 'ring-2 ring-brand-400 text-slate-700 dark:text-slate-300' : 'text-slate-700 dark:text-slate-300')}`;
-            btn.textContent = i;
+            btn.className = `w-full aspect-square flex flex-col items-center justify-center gap-0.5 rounded-lg text-sm transition-colors hover:bg-slate-200 dark:hover:bg-slate-700 ${isSelected ? 'bg-brand-500 text-white font-bold shadow-md hover:bg-brand-600 dark:hover:bg-brand-600' : (isToday ? 'ring-2 ring-brand-400 text-slate-700 dark:text-slate-300' : 'text-slate-700 dark:text-slate-300')}`;
+            btn.innerHTML = `
+                <span>${i}</span>
+                ${this.renderDots(dots, isSelected)}
+            `;
             btn.onclick = () => {
                 this.selectedDate = new Date(year, month, i);
                 this.renderCalendar();
@@ -2496,6 +2670,30 @@ const Agenda = {
             };
             daysEl.appendChild(btn);
         }
+    },
+
+    // Devuelve los colores (de asignatura) de los eventos de ese día, sin duplicados.
+    // Si hay eventos pero ninguno tiene asignatura, devuelve ['default'] para mostrar un punto genérico.
+    getDayDotColors(dateString) {
+        const dayEvents = this.events.filter(ev => ev.date === dateString);
+        if (dayEvents.length === 0) return [];
+        const colors = [];
+        dayEvents.forEach(ev => {
+            const c = ev.subjectColor || 'default';
+            if (!colors.includes(c)) colors.push(c);
+        });
+        return colors.slice(0, 3);
+    },
+
+    renderDots(colors, isSelected) {
+        if (!colors || colors.length === 0) return '<span class="h-1.5"></span>';
+        return `<span class="flex items-center justify-center gap-0.5">${colors.map(c => {
+            const style = c === 'default'
+                ? (isSelected ? 'background-color:#ffffff' : '')
+                : `background-color:${c}`;
+            const cls = c === 'default' && !isSelected ? 'bg-brand-500' : '';
+            return `<span class="w-1.5 h-1.5 rounded-full ${cls}" style="${style}"></span>`;
+        }).join('')}</span>`;
     },
 
     renderWeekView() {
@@ -2513,7 +2711,9 @@ const Agenda = {
             : `${monday.getDate()} ${monthNamesShort[monday.getMonth()]} – ${sunday.getDate()} ${monthNamesShort[sunday.getMonth()]} ${sunday.getFullYear()}`;
 
         daysEl.innerHTML = '';
-        daysEl.className = 'grid grid-cols-7 gap-1 text-sm flex-1';
+        // Sin flex-1/h-full: las celdas ya no se estiran a lo alto de toda la tarjeta,
+        // así la vista semanal queda compacta en vez de muy alargada.
+        daysEl.className = 'grid grid-cols-7 gap-1.5 text-sm';
         const dayLabels = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
 
         for (let i = 0; i < 7; i++) {
@@ -2521,14 +2721,14 @@ const Agenda = {
             d.setDate(monday.getDate() + i);
             const isSelected = this.isSameDay(d, this.selectedDate);
             const isToday = this.isSameDay(d, new Date());
-            const hasEvents = this.events.some(ev => ev.date === this.toDateString(d));
+            const dots = this.getDayDotColors(this.toDateString(d));
 
             const btn = document.createElement('button');
-            btn.className = `w-full h-full min-h-[52px] flex flex-col items-center justify-center gap-1 rounded-lg transition-colors hover:bg-slate-200 dark:hover:bg-slate-700 ${isSelected ? 'bg-brand-500 text-white font-bold shadow-md hover:bg-brand-600 dark:hover:bg-brand-600' : (isToday ? 'ring-2 ring-brand-400 text-slate-700 dark:text-slate-300' : 'text-slate-700 dark:text-slate-300')}`;
+            btn.className = `w-full aspect-square flex flex-col items-center justify-center gap-0.5 rounded-lg transition-colors hover:bg-slate-200 dark:hover:bg-slate-700 ${isSelected ? 'bg-brand-500 text-white font-bold shadow-md hover:bg-brand-600 dark:hover:bg-brand-600' : (isToday ? 'ring-2 ring-brand-400 text-slate-700 dark:text-slate-300' : 'text-slate-700 dark:text-slate-300')}`;
             btn.innerHTML = `
                 <span class="text-[10px] uppercase opacity-70">${dayLabels[i]}</span>
-                <span class="font-bold text-base">${d.getDate()}</span>
-                <span class="w-1 h-1 rounded-full ${hasEvents ? (isSelected ? 'bg-white' : 'bg-brand-500') : 'bg-transparent'}"></span>
+                <span class="font-bold text-sm">${d.getDate()}</span>
+                ${this.renderDots(dots, isSelected)}
             `;
             btn.onclick = () => {
                 this.selectedDate = new Date(d);
@@ -2591,10 +2791,16 @@ const Agenda = {
         dayEvents.forEach(ev => {
             const el = document.createElement('div');
             el.className = 'bg-white dark:bg-[#1a2233] p-3 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex justify-between items-center group';
+            const subjectBadge = ev.subjectName
+                ? `<span class="inline-flex items-center gap-1 text-[11px] font-bold mt-1 px-1.5 py-0.5 rounded-full" style="background-color:${ev.subjectColor || '#94a3b8'}22; color:${ev.subjectColor || '#64748b'}">
+                       <span class="w-1.5 h-1.5 rounded-full" style="background-color:${ev.subjectColor || '#94a3b8'}"></span>${this.escapeHtml(ev.subjectName)}
+                   </span>`
+                : '';
             el.innerHTML = `
                 <div>
                     <div class="font-bold text-slate-800 dark:text-slate-200">${this.escapeHtml(ev.title)}</div>
                     <div class="text-xs text-slate-500">${ev.time || 'Todo el día'}</div>
+                    ${subjectBadge}
                 </div>
                 <button class="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-opacity p-2" onclick="window.Agenda.deleteEvent('${ev.id}')"><i class="fa-solid fa-trash-can"></i></button>
             `;
@@ -2608,16 +2814,23 @@ const Agenda = {
             return;
         }
         
+        const subjectOptions = [{ value: '', label: 'Sin asignatura (evento general)' }]
+            .concat((Notebook.subjects || []).map(s => ({ value: s.id, label: s.name })));
+
         ModalManager.show({
             title: 'Nuevo Evento',
             inputs: [
                 { label: 'Título del evento', placeholder: 'Ej. Examen de Historia' },
-                { label: 'Hora (Opcional)', placeholder: 'Ej. 10:00' }
+                { label: 'Hora (Opcional)', placeholder: 'Ej. 10:00', optional: true },
+                { label: 'Asignatura (para deberes/exámenes)', type: 'select', options: subjectOptions, optional: true }
             ],
             confirmText: 'Añadir',
             onConfirm: async (values) => {
                 const title = values[0];
                 const time = values[1];
+                const subjectId = values[2];
+                const subject = subjectId ? Notebook.subjects.find(s => s.id === subjectId) : null;
+
                 const year = this.selectedDate.getFullYear();
                 const month = String(this.selectedDate.getMonth() + 1).padStart(2, '0');
                 const day = String(this.selectedDate.getDate()).padStart(2, '0');
@@ -2629,6 +2842,9 @@ const Agenda = {
                         title: title,
                         time: time,
                         date: dateString,
+                        subjectId: subject ? subject.id : null,
+                        subjectName: subject ? subject.name : null,
+                        subjectColor: subject ? subject.color : null,
                         createdAt: new Date()
                     });
                     app.toast('Evento añadido');
@@ -2664,6 +2880,11 @@ const Notebook = {
     currentSubjectId: null,
     currentTopicId: null,
     saveTimeout: null,
+    subjectColorPalette: ['#f64b31', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6', '#dc2626'],
+
+    nextSuggestedColor() {
+        return this.subjectColorPalette[this.subjects.length % this.subjectColorPalette.length];
+    },
     
     init() {
         this.addSubjectBtn = document.getElementById('nb-add-subject');
@@ -2735,8 +2956,9 @@ const Notebook = {
             const el = document.createElement('div');
             el.className = `p-3 rounded-xl cursor-pointer transition-colors flex justify-between items-center group ${isSelected ? 'bg-brand-50 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400' : 'hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'}`;
             el.innerHTML = `
-                <div class="font-bold truncate flex-1" onclick="window.Notebook.selectSubject('${sub.id}', '${this.escapeHtml(sub.name)}')">
-                    ${this.escapeHtml(sub.name)}
+                <div class="font-bold truncate flex-1 flex items-center gap-2" onclick="window.Notebook.selectSubject('${sub.id}', '${this.escapeHtml(sub.name)}')">
+                    <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background-color:${sub.color || '#94a3b8'}"></span>
+                    <span class="truncate">${this.escapeHtml(sub.name)}</span>
                 </div>
                 <button class="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-opacity p-1" onclick="window.Notebook.deleteSubject('${sub.id}')"><i class="fa-solid fa-xmark"></i></button>
             `;
@@ -2748,14 +2970,19 @@ const Notebook = {
         if (!AuthManager.currentUser) return;
         ModalManager.show({
             title: 'Nueva Asignatura',
-            inputs: [{ label: 'Nombre de la asignatura', placeholder: 'Ej. Matemáticas' }],
+            inputs: [
+                { label: 'Nombre de la asignatura', placeholder: 'Ej. Matemáticas' },
+                { label: 'Color de la asignatura (obligatorio)', type: 'color', value: this.nextSuggestedColor() }
+            ],
             confirmText: 'Crear',
             onConfirm: async (values) => {
                 const name = values[0];
+                const color = values[1];
                 try {
                     await window.fb.addDoc(window.fb.collection(window.fb.db, "notebook_subjects"), {
                         uid: AuthManager.currentUser.uid,
                         name: name,
+                        color: color,
                         createdAt: new Date()
                     });
                     app.toast('Asignatura creada');
