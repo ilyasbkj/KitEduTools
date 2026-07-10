@@ -58,6 +58,15 @@ body { transition: background-color 0.3s ease, color 0.3s ease; }
   touch-action: none;
   flex: 1;
   min-height: 300px;
+  cursor: grab;
+}
+#mindmap-container.mm-panning,
+#mindmap-container:active {
+  cursor: grabbing;
+}
+
+#mindmap-nodes {
+  transform-origin: 0 0;
 }
 
 #mindmap-svg {
@@ -78,8 +87,8 @@ body { transition: background-color 0.3s ease, color 0.3s ease; }
 }
 .mindmap-node:active { cursor: grabbing; transform: scale(1.02); }
 .mindmap-node.selected {
-  border-color: #ff6f59;
-  box-shadow: 0 0 0 4px rgba(255,111,89,.2), 0 10px 15px -3px rgba(0,0,0,.1);
+  border-color: rgb(var(--brand-400, 255 111 89));
+  box-shadow: 0 0 0 4px rgb(var(--brand-400, 255 111 89) / .2), 0 10px 15px -3px rgba(0,0,0,.1);
   z-index: 30;
 }
 .mindmap-node .node-content { outline: none; word-wrap: break-word; min-height: 22px; }

@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="es" class="dark">
 <head>
-    <script>(function(s){s.dataset.zone='11266226',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EduToolKit</title>
@@ -15,14 +14,14 @@
                 extend: {
                     colors: {
                         brand: {
-                            50: '#fff1f0',
-                            100: '#ffe0dc',
-                            200: '#ffc6be',
-                            300: '#ffa193',
-                            400: '#ff6f59', /* Salmon/Coral */
-                            500: '#f64b31',
-                            600: '#e33015',
-                            900: '#7f2113',
+                            50: 'rgb(var(--brand-50) / <alpha-value>)',
+                            100: 'rgb(var(--brand-100) / <alpha-value>)',
+                            200: 'rgb(var(--brand-200) / <alpha-value>)',
+                            300: 'rgb(var(--brand-300) / <alpha-value>)',
+                            400: 'rgb(var(--brand-400) / <alpha-value>)',
+                            500: 'rgb(var(--brand-500) / <alpha-value>)',
+                            600: 'rgb(var(--brand-600) / <alpha-value>)',
+                            900: 'rgb(var(--brand-900) / <alpha-value>)',
                         },
                         darkbg: '#111827', /* gray-900 */
                         darkcard: '#1f2937', /* gray-800 */
@@ -44,6 +43,18 @@
     <link rel="stylesheet" href="styles.css">
     <style>
         body { font-family: 'Inter', sans-serif; }
+        :root {
+            /* Paleta de acento por defecto (coral). Se sobreescriben en JS
+               al personalizar colores desde la cuenta. Formato "R G B". */
+            --brand-50: 255 241 240;
+            --brand-100: 255 224 220;
+            --brand-200: 255 198 190;
+            --brand-300: 255 161 147;
+            --brand-400: 255 111 89;
+            --brand-500: 246 75 49;
+            --brand-600: 227 48 21;
+            --brand-900: 127 33 19;
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 dark:bg-[#0f141e] dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-300">
@@ -73,10 +84,24 @@
                         <button id="btn-login" class="bg-brand-500 hover:bg-brand-600 text-white font-medium py-1.5 px-3 rounded-lg shadow-sm transition-colors text-sm flex items-center gap-1.5">
                             <i class="fa-brands fa-google text-xs"></i> <span class="hidden xs:inline">Conectar</span><span class="xs:hidden">G</span>
                         </button>
-                        <div id="user-info" class="hidden items-center gap-2">
+                        <div id="user-info" class="hidden items-center gap-2 relative">
+                            <button id="btn-theme-color" class="text-slate-400 hover:text-brand-500 transition-colors p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800" title="Personalizar colores">
+                                <i class="fa-solid fa-palette"></i>
+                            </button>
                             <img id="user-avatar" src="" alt="Avatar" class="w-8 h-8 rounded-full border-2 border-brand-500 shadow-sm cursor-pointer" title="Tu Perfil">
                             <span id="user-name" class="font-medium text-sm hidden md:block"></span>
                             <button id="btn-logout" class="text-slate-400 hover:text-red-500 transition-colors p-1" title="Cerrar sesión"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
+
+                            <!-- Color customization popover -->
+                            <div id="theme-color-popover" class="hidden absolute right-0 top-12 z-50 w-64 bg-white dark:bg-[#151b26] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-4">
+                                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Color de tu cuenta</p>
+                                <div id="theme-color-swatches" class="grid grid-cols-6 gap-2 mb-3"></div>
+                                <div class="flex items-center gap-2">
+                                    <input type="color" id="theme-color-custom" value="#f64b31" class="w-9 h-9 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer bg-transparent p-0">
+                                    <span class="text-xs text-slate-400 flex-1">Color personalizado</span>
+                                    <button id="theme-color-reset" class="text-xs font-medium text-slate-400 hover:text-brand-500 transition-colors" title="Restablecer">Reset</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -316,6 +341,9 @@
                     </div>
                 </div>
 
+                <!-- Zoom hint (desktop only) -->
+                <p class="hidden md:block text-[11px] text-slate-400 -mt-2 mb-2">Rueda del ratón: zoom · Arrastra el fondo: mover el lienzo</p>
+
                 <!-- Two-pane layout -->
                 <div class="flex flex-1 gap-4 overflow-hidden min-h-0">
 
@@ -345,6 +373,15 @@
                             <div id="mindmap-container" class="w-full h-full bg-slate-100/50 dark:bg-[#111827] rounded-2xl border border-slate-200 dark:border-slate-800 relative overflow-hidden shadow-inner cursor-crosshair">
                                 <svg id="mindmap-svg" class="w-full h-full absolute inset-0 pointer-events-none z-10"></svg>
                                 <div id="mindmap-nodes" class="absolute inset-0 z-20"></div>
+
+                                <!-- Zoom controls -->
+                                <div class="absolute bottom-3 right-3 z-40 flex items-center gap-1 bg-white/90 dark:bg-[#1a2233]/90 backdrop-blur border border-slate-200 dark:border-slate-700 rounded-xl shadow-md p-1">
+                                    <button id="mm-zoom-out" title="Alejar" class="w-8 h-8 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300"><i class="fa-solid fa-minus text-xs"></i></button>
+                                    <span id="mm-zoom-level" class="text-xs font-semibold w-11 text-center text-slate-600 dark:text-slate-300 select-none">100%</span>
+                                    <button id="mm-zoom-in" title="Acercar" class="w-8 h-8 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300"><i class="fa-solid fa-plus text-xs"></i></button>
+                                    <div class="w-px h-5 bg-slate-200 dark:bg-slate-700 mx-0.5"></div>
+                                    <button id="mm-zoom-reset" title="Encajar en pantalla" class="w-8 h-8 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300"><i class="fa-solid fa-compress text-xs"></i></button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -499,9 +536,15 @@
 
             <!-- AGENDA VIEW -->
             <div id="view-agenda" class="view-section hidden fade-in max-w-6xl mx-auto w-full h-full flex flex-col relative">
-                <div class="flex items-center justify-between mb-4 flex-shrink-0">
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-4 flex-shrink-0">
                     <h2 class="text-2xl md:text-3xl font-bold"><i class="fa-solid fa-calendar-days text-brand-500 mr-2"></i> Agenda Personal</h2>
-                    <button id="agenda-add-btn" class="bg-brand-500 hover:bg-brand-600 text-white font-medium py-2 px-4 rounded-lg shadow-md transition-colors text-sm"><i class="fa-solid fa-plus mr-1"></i> Nuevo Evento</button>
+                    <div class="flex items-center gap-3">
+                        <div id="agenda-view-toggle" class="flex items-center bg-slate-100 dark:bg-[#1a2233] rounded-lg p-1 text-sm font-medium">
+                            <button id="agenda-view-month" class="px-3 py-1.5 rounded-md transition-colors">Mes</button>
+                            <button id="agenda-view-week" class="px-3 py-1.5 rounded-md transition-colors">Semana</button>
+                        </div>
+                        <button id="agenda-add-btn" class="bg-brand-500 hover:bg-brand-600 text-white font-medium py-2 px-4 rounded-lg shadow-md transition-colors text-sm"><i class="fa-solid fa-plus mr-1"></i> Nuevo Evento</button>
+                    </div>
                 </div>
                 <!-- Agenda Container -->
                 <div class="flex-1 bg-white dark:bg-[#1a2233] rounded-3xl shadow-lg border border-slate-200 dark:border-slate-800/50 flex flex-col md:flex-row overflow-hidden">
@@ -631,6 +674,42 @@
                 <button id="custom-modal-cancel" class="px-4 py-2 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">Cancelar</button>
                 <button id="custom-modal-confirm" class="px-4 py-2 rounded-lg text-sm font-bold bg-brand-500 text-white hover:bg-brand-600 shadow-md shadow-brand-500/30 transition-all">Aceptar</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Floating Pomodoro Widget (persiste entre vistas) -->
+    <div id="pomo-floating" class="hidden fixed z-[55] select-none" style="right: 20px; bottom: 20px;">
+        <!-- Expanded card -->
+        <div id="pomo-floating-expanded" class="bg-white dark:bg-[#151b26] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-3 flex items-center gap-3 w-[220px]">
+            <div id="pomo-floating-handle" class="cursor-grab active:cursor-grabbing flex items-center justify-center text-slate-300 dark:text-slate-600 hover:text-slate-400 px-1" title="Arrastrar">
+                <i class="fa-solid fa-grip-vertical"></i>
+            </div>
+            <div class="relative w-12 h-12 flex-shrink-0">
+                <svg viewBox="0 0 60 60" class="w-12 h-12 -rotate-90">
+                    <circle cx="30" cy="30" r="26" fill="none" stroke-width="4" class="stroke-slate-100 dark:stroke-slate-800"></circle>
+                    <circle id="pomo-floating-ring" cx="30" cy="30" r="26" fill="none" stroke-width="4" stroke-linecap="round" class="stroke-brand-500 transition-all duration-1000 linear"></circle>
+                </svg>
+                <div class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-slate-500 dark:text-slate-400" id="pomo-floating-status-dot">
+                    <i class="fa-solid fa-stopwatch"></i>
+                </div>
+            </div>
+            <div class="flex-1 min-w-0">
+                <div id="pomo-floating-time" class="font-mono font-bold text-lg text-slate-800 dark:text-slate-100 leading-tight">25:00</div>
+                <div id="pomo-floating-status" class="text-[11px] text-slate-400 font-medium">Estudio</div>
+            </div>
+            <div class="flex flex-col gap-1">
+                <button id="pomo-floating-playpause" class="w-7 h-7 rounded-lg bg-brand-500 text-white flex items-center justify-center hover:bg-brand-600 transition-colors text-xs" title="Pausar/Reanudar"><i class="fa-solid fa-pause"></i></button>
+                <button id="pomo-floating-toggle" class="w-7 h-7 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-xs" title="Minimizar"><i class="fa-solid fa-minus"></i></button>
+            </div>
+            <button id="pomo-floating-close" class="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:bg-red-500 hover:text-white flex items-center justify-center text-[10px] shadow" title="Ocultar">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Collapsed bubble -->
+        <div id="pomo-floating-collapsed" class="hidden cursor-grab active:cursor-grabbing w-16 h-16 rounded-full bg-white dark:bg-[#151b26] border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col items-center justify-center gap-0.5">
+            <i class="fa-solid fa-stopwatch text-brand-500 text-sm"></i>
+            <span id="pomo-floating-mini-time" class="font-mono font-bold text-[11px] text-slate-700 dark:text-slate-200">25:00</span>
         </div>
     </div>
 

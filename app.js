@@ -55,11 +55,22 @@ const app = {
         SpellChecker.init();
         ModalManager.init();
         AuthManager.init();
+        ThemeManager.init();
         Agenda.init();
         Notebook.init();
         this.initMobileMenu();
-        
-        this.navigate('home');
+        this.initRouting();
+
+        const startView = (location.hash || '').replace('#', '');
+        const validStart = startView && document.getElementById(`view-${startView}`) ? startView : 'home';
+        this.navigate(validStart, { replace: true });
+    },
+
+    initRouting() {
+        window.addEventListener('popstate', (e) => {
+            const viewId = (e.state && e.state.view) || 'home';
+            this.navigate(viewId, { fromPopState: true });
+        });
     },
 
     initTheme() {
@@ -86,7 +97,20 @@ const app = {
         });
     },
 
-    navigate(viewId) {
+    navigate(viewId, opts = {}) {
+        const { fromPopState = false, replace = false } = opts;
+
+        // Update browser history so the back button moves between
+        // in-app views instead of leaving the site.
+        if (!fromPopState) {
+            const url = viewId === 'home' ? (location.pathname + location.search) : `#${viewId}`;
+            if (replace || !history.state) {
+                history.replaceState({ view: viewId }, '', url);
+            } else if (history.state.view !== viewId) {
+                history.pushState({ view: viewId }, '', url);
+            }
+        }
+
         document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
         document.getElementById(`view-${viewId}`).classList.remove('hidden');
         
@@ -132,6 +156,7 @@ const app = {
         }
         
         this.currentView = viewId;
+        if (typeof Pomodoro !== 'undefined') Pomodoro.onNavigate(viewId);
         
         // Close mobile menu if open
         const sidebarEl = document.getElementById('sidebar');
@@ -822,13 +847,173 @@ const MindMap = {
         document.getElementById('mm-size-up').onclick = () => this.setNodeScale(0.1);
         document.getElementById('mm-size-down').onclick = () => this.setNodeScale(-0.1);
 
-        this.container.addEventListener('mousedown', (e) => {
-            if (e.target === this.container || e.target === this.svg || e.target === this.nodesContainer) {
-                this.selectNode(null);
+        this.initPanZoom();
+
+        // Don't auto-clearMap; wait for user to select/create a map
+    },
+
+    // ---- Pan & Zoom (estilo MindMeister) ----
+
+    initPanZoom() {
+        this.panX = 0;
+        this.panY = 0;
+        this.zoom = 1;
+        this.MIN_ZOOM = 0.2;
+        this.MAX_ZOOM = 3;
+        this._activePointers = new Map();
+        this._pinchStartDist = null;
+        this._pinchStartZoom = 1;
+        this._isPanning = false;
+        this._panMoved = false;
+        this.nodesContainer.style.transformOrigin = '0 0';
+
+        const zoomInBtn = document.getElementById('mm-zoom-in');
+        const zoomOutBtn = document.getElementById('mm-zoom-out');
+        const zoomResetBtn = document.getElementById('mm-zoom-reset');
+        if (zoomInBtn) zoomInBtn.onclick = () => this.zoomAtCenter(1.2);
+        if (zoomOutBtn) zoomOutBtn.onclick = () => this.zoomAtCenter(1 / 1.2);
+        if (zoomResetBtn) zoomResetBtn.onclick = () => this.fitToContent();
+
+        // Mouse wheel = zoom centrado en el cursor (como MindMeister)
+        this.container.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
+            this.zoomAt(e.clientX, e.clientY, factor);
+        }, { passive: false });
+
+        // Pointer events unificados (ratón + táctil) para pan y pinch-zoom
+        this.container.addEventListener('pointerdown', (e) => {
+            this._activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+            if (this._activePointers.size === 2) {
+                // Empieza gesto de pellizco
+                this.dragNode = null;
+                this._isPanning = false;
+                const pts = Array.from(this._activePointers.values());
+                this._pinchStartDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+                this._pinchStartZoom = this.zoom;
+                return;
+            }
+
+            const isBackground = (e.target === this.container || e.target === this.svg || e.target === this.nodesContainer);
+            if (isBackground && this._activePointers.size === 1) {
+                this._isPanning = true;
+                this._panMoved = false;
+                this._panStart = { x: e.clientX, y: e.clientY, panX: this.panX, panY: this.panY };
+                this.container.setPointerCapture(e.pointerId);
+                this.container.classList.add('mm-panning');
             }
         });
 
-        // Don't auto-clearMap; wait for user to select/create a map
+        this.container.addEventListener('pointermove', (e) => {
+            if (!this._activePointers.has(e.pointerId)) return;
+            this._activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+            if (this._activePointers.size === 2 && this._pinchStartDist) {
+                const pts = Array.from(this._activePointers.values());
+                const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+                const factor = dist / this._pinchStartDist;
+                const midX = (pts[0].x + pts[1].x) / 2;
+                const midY = (pts[0].y + pts[1].y) / 2;
+                const targetZoom = Math.max(this.MIN_ZOOM, Math.min(this.MAX_ZOOM, this._pinchStartZoom * factor));
+                this.zoomAt(midX, midY, targetZoom / this.zoom);
+                return;
+            }
+
+            if (this._isPanning && this._panStart) {
+                const dx = e.clientX - this._panStart.x;
+                const dy = e.clientY - this._panStart.y;
+                if (Math.abs(dx) > 3 || Math.abs(dy) > 3) this._panMoved = true;
+                this.panX = this._panStart.panX + dx;
+                this.panY = this._panStart.panY + dy;
+                this.applyTransform();
+            }
+        });
+
+        const endPointer = (e) => {
+            this._activePointers.delete(e.pointerId);
+            if (this._activePointers.size < 2) {
+                this._pinchStartDist = null;
+            }
+            if (this._isPanning && this._activePointers.size === 0) {
+                this._isPanning = false;
+                this.container.classList.remove('mm-panning');
+                if (!this._panMoved) {
+                    // Fue un simple clic en el fondo: deseleccionar nodo
+                    this.selectNode(null);
+                }
+            }
+        };
+        this.container.addEventListener('pointerup', endPointer);
+        this.container.addEventListener('pointercancel', endPointer);
+
+        this.applyTransform();
+    },
+
+    screenToWorld(clientX, clientY) {
+        const rect = this.container.getBoundingClientRect();
+        return {
+            x: (clientX - rect.left - this.panX) / this.zoom,
+            y: (clientY - rect.top - this.panY) / this.zoom
+        };
+    },
+
+    applyTransform() {
+        this.nodesContainer.style.transform = `translate(${this.panX}px, ${this.panY}px) scale(${this.zoom})`;
+        const label = document.getElementById('mm-zoom-level');
+        if (label) label.textContent = Math.round(this.zoom * 100) + '%';
+        this.renderLines();
+        if (this.selectedNodeId) this.updateToolbarPosition();
+    },
+
+    zoomAt(clientX, clientY, factor) {
+        const rect = this.container.getBoundingClientRect();
+        const px = clientX - rect.left;
+        const py = clientY - rect.top;
+        const worldX = (px - this.panX) / this.zoom;
+        const worldY = (py - this.panY) / this.zoom;
+
+        const newZoom = Math.max(this.MIN_ZOOM, Math.min(this.MAX_ZOOM, this.zoom * factor));
+        this.panX = px - worldX * newZoom;
+        this.panY = py - worldY * newZoom;
+        this.zoom = newZoom;
+        this.applyTransform();
+    },
+
+    zoomAtCenter(factor) {
+        const rect = this.container.getBoundingClientRect();
+        this.zoomAt(rect.left + rect.width / 2, rect.top + rect.height / 2, factor);
+    },
+
+    fitToContent() {
+        if (this.nodes.length === 0) {
+            this.panX = 0; this.panY = 0; this.zoom = 1;
+            this.applyTransform();
+            return;
+        }
+        const padding = 80;
+        const xs = this.nodes.map(n => n.x);
+        const ys = this.nodes.map(n => n.y);
+        const widths = this.nodes.map(n => (n.el ? n.el.offsetWidth : 150) * n.scale);
+        const heights = this.nodes.map(n => (n.el ? n.el.offsetHeight : 44) * n.scale);
+
+        const minX = Math.min(...xs);
+        const minY = Math.min(...ys);
+        const maxX = Math.max(...xs.map((x, i) => x + widths[i]));
+        const maxY = Math.max(...ys.map((y, i) => y + heights[i]));
+
+        const contentW = Math.max(1, maxX - minX);
+        const contentH = Math.max(1, maxY - minY);
+        const rect = this.container.getBoundingClientRect();
+
+        const scale = Math.max(this.MIN_ZOOM, Math.min(this.MAX_ZOOM,
+            Math.min((rect.width - padding * 2) / contentW, (rect.height - padding * 2) / contentH, 1.5)
+        ));
+
+        this.zoom = scale;
+        this.panX = (rect.width - contentW * scale) / 2 - minX * scale;
+        this.panY = (rect.height - contentH * scale) / 2 - minY * scale;
+        this.applyTransform();
     },
 
     // ---- Multi-map management ----
@@ -994,7 +1179,7 @@ const MindMap = {
             if (this.selectedNodeId === id) this.updateToolbarPosition();
         };
 
-        el.onmousedown = (e) => this.startDrag(e, id, el);
+        el.addEventListener('pointerdown', (e) => this.startDrag(e, id, el));
 
         this.nodesContainer.appendChild(el);
         this.nodes.push({ id, text: content.innerHTML, x, y, bgColor: defaultBg, textColor: defaultText, scale: 1, el });
@@ -1037,50 +1222,53 @@ const MindMap = {
 
     startDrag(e, id, el) {
         if (e.target.contentEditable === 'true') return;
-        
+        if (this._activePointers && this._activePointers.size >= 1 && e.pointerType === 'touch') {
+            // Evita conflicto si ya hay un gesto de pellizco en curso sobre el fondo
+            if (this._activePointers.size >= 2) return;
+        }
+
         this.selectNode(id);
         this.dragNode = id;
         this.toolbar.classList.add('hidden');
-        
-        const rect = el.getBoundingClientRect();
-        this.offsetX = e.clientX - rect.left;
-        this.offsetY = e.clientY - rect.top;
 
-        const mouseMoveHandler = (ev) => this.drag(ev);
-        const mouseUpHandler = () => {
-            document.removeEventListener('mousemove', mouseMoveHandler);
-            document.removeEventListener('mouseup', mouseUpHandler);
+        const node = this.nodes.find(n => n.id === id);
+        const worldPointer = this.screenToWorld(e.clientX, e.clientY);
+        this.dragOffsetX = worldPointer.x - (node ? node.x : 0);
+        this.dragOffsetY = worldPointer.y - (node ? node.y : 0);
+
+        el.setPointerCapture(e.pointerId);
+
+        const moveHandler = (ev) => this.drag(ev);
+        const upHandler = (ev) => {
+            el.removeEventListener('pointermove', moveHandler);
+            el.removeEventListener('pointerup', upHandler);
+            el.removeEventListener('pointercancel', upHandler);
             this.dragNode = null;
             this.updateToolbarPosition();
             this.saveToCloud();
         };
-        
-        document.addEventListener('mousemove', mouseMoveHandler);
-        document.addEventListener('mouseup', mouseUpHandler);
+
+        el.addEventListener('pointermove', moveHandler);
+        el.addEventListener('pointerup', upHandler);
+        el.addEventListener('pointercancel', upHandler);
     },
 
     drag(e) {
         if (!this.dragNode) return;
-        
+
         const el = document.getElementById(this.dragNode);
-        const containerRect = this.container.getBoundingClientRect();
-        
         const node = this.nodes.find(n => n.id === this.dragNode);
-        const scale = node ? node.scale : 1;
-        
-        let newX = e.clientX - containerRect.left - this.offsetX;
-        let newY = e.clientY - containerRect.top - this.offsetY;
-        
-        newX = Math.max(0, Math.min(newX, containerRect.width - (el.offsetWidth * scale)));
-        newY = Math.max(0, Math.min(newY, containerRect.height - (el.offsetHeight * scale)));
+        if (!el || !node) return;
+
+        const worldPointer = this.screenToWorld(e.clientX, e.clientY);
+        const newX = worldPointer.x - this.dragOffsetX;
+        const newY = worldPointer.y - this.dragOffsetY;
 
         el.style.left = newX + 'px';
         el.style.top = newY + 'px';
 
-        if (node) {
-            node.x = newX;
-            node.y = newY;
-        }
+        node.x = newX;
+        node.y = newY;
 
         this.renderLines();
     },
@@ -1131,11 +1319,18 @@ const MindMap = {
         if (!el) return;
 
         this.toolbar.classList.remove('hidden');
-        const x = parseInt(el.style.left);
-        const y = parseInt(el.style.top);
-        
+
+        // Posicionar en espacio de pantalla (funciona con cualquier pan/zoom)
+        const elRect = el.getBoundingClientRect();
+        const refEl = this.toolbar.offsetParent || document.getElementById('view-mindmap');
+        const refRect = refEl.getBoundingClientRect();
+
+        let x = elRect.left - refRect.left;
+        let y = elRect.top - refRect.top - 100;
+        if (y < 0) y = elRect.bottom - refRect.top + 8; // si no cabe arriba, mostrar debajo
+
         this.toolbar.style.left = x + 'px';
-        this.toolbar.style.top = (y - 100) + 'px'; 
+        this.toolbar.style.top = y + 'px';
     },
 
     deleteNode(id) {
@@ -1191,6 +1386,10 @@ const MindMap = {
         this.nodesContainer.innerHTML = '';
         this.svg.innerHTML = '';
         this.nodeCounter = 1;
+        this.panX = 0;
+        this.panY = 0;
+        this.zoom = 1;
+        if (this.nodesContainer) this.applyTransform();
         this.selectNode(null);
         if (keepRoot) {
             this.addNode(null, true);
@@ -1257,7 +1456,7 @@ const MindMap = {
                         if (this.selectedNodeId === n.id) this.updateToolbarPosition();
                     };
 
-                    el.onmousedown = (ev) => this.startDrag(ev, n.id, el);
+                    el.addEventListener('pointerdown', (ev) => this.startDrag(ev, n.id, el));
 
                     this.nodesContainer.appendChild(el);
                     this.nodes.push({ id: n.id, text: n.text, x: n.x, y: n.y, bgColor: n.bgColor || '#ffffff', textColor: n.textColor || '#1e293b', scale: scale, el });
@@ -1265,6 +1464,7 @@ const MindMap = {
 
                 this.connections = data.connections;
                 this.renderLines();
+                this.fitToContent();
                 app.toast('Mapa mental importado');
                 this.saveToCloud();
                 
@@ -1314,12 +1514,13 @@ const MindMap = {
                 if (this.selectedNodeId === n.id) this.updateToolbarPosition();
                 this.saveToCloud();
             };
-            el.onmousedown = (ev) => this.startDrag(ev, n.id, el);
+            el.addEventListener('pointerdown', (ev) => this.startDrag(ev, n.id, el));
             this.nodesContainer.appendChild(el);
             this.nodes.push({ id: n.id, text: n.text, x: n.x, y: n.y, bgColor: n.bgColor || '#ffffff', textColor: n.textColor || '#1e293b', scale, el });
         });
         this.connections = data.connections;
         this.renderLines();
+        this.fitToContent();
     }
 };
 
@@ -1335,6 +1536,11 @@ const Pomodoro = {
     workMin: 25,
     breakMin: 5,
     totalTime: 25 * 60,
+    // Floating widget state
+    floatingEl: null,
+    floatingCollapsed: false,
+    floatingHiddenByUser: false,
+    _dragInfo: null,
 
     init() {
         const startBtn = document.getElementById('pomo-start');
@@ -1350,12 +1556,14 @@ const Pomodoro = {
             this.startTimer();
             startBtn.classList.add('hidden');
             pauseBtn.classList.remove('hidden');
+            this.refreshFloatingVisibility();
         };
         
         pauseBtn.onclick = () => {
             this.pauseTimer();
             pauseBtn.classList.add('hidden');
             startBtn.classList.remove('hidden');
+            this.refreshFloatingVisibility();
         };
 
         resetBtn.onclick = () => {
@@ -1366,6 +1574,7 @@ const Pomodoro = {
             this.updateDisplay();
             startBtn.classList.remove('hidden');
             pauseBtn.classList.add('hidden');
+            this.refreshFloatingVisibility();
         };
 
         workInput.addEventListener('input', (e) => {
@@ -1391,6 +1600,163 @@ const Pomodoro = {
         });
 
         this.updateDisplay();
+        this.initFloatingWidget();
+    },
+
+    // ---- Floating / minimized widget ----
+
+    initFloatingWidget() {
+        this.floatingEl = document.getElementById('pomo-floating');
+        if (!this.floatingEl) return;
+
+        const expandedBox = document.getElementById('pomo-floating-expanded');
+        const collapsedBox = document.getElementById('pomo-floating-collapsed');
+        const toggleBtn = document.getElementById('pomo-floating-toggle');
+        const closeBtn = document.getElementById('pomo-floating-close');
+        const playPauseBtn = document.getElementById('pomo-floating-playpause');
+        const dragHandle = document.getElementById('pomo-floating-handle');
+
+        // Restore saved position
+        try {
+            const saved = JSON.parse(localStorage.getItem('pomoFloatingPos') || 'null');
+            if (saved && typeof saved.left === 'number' && typeof saved.top === 'number') {
+                this.floatingEl.style.left = saved.left + 'px';
+                this.floatingEl.style.top = saved.top + 'px';
+                this.floatingEl.style.right = 'auto';
+                this.floatingEl.style.bottom = 'auto';
+            }
+        } catch (e) { /* ignore */ }
+
+        toggleBtn.addEventListener('click', () => {
+            this.floatingCollapsed = true;
+            this.renderFloatingMode();
+        });
+
+        closeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.floatingHiddenByUser = true;
+            this.refreshFloatingVisibility();
+        });
+
+        playPauseBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (this.timerId) {
+                this.pauseTimer();
+            } else {
+                this.startTimer();
+            }
+            this.updateDisplay();
+            document.getElementById('pomo-start')?.classList.toggle('hidden', !!this.timerId);
+            document.getElementById('pomo-pause')?.classList.toggle('hidden', !this.timerId);
+        });
+
+        // Clicking the collapsed bubble (not dragging) expands it back
+        collapsedBox.addEventListener('click', () => {
+            if (this._dragInfo && this._dragInfo.moved) return;
+            this.floatingCollapsed = false;
+            this.renderFloatingMode();
+        });
+
+        this.initFloatingDrag(dragHandle);
+        this.initFloatingDrag(collapsedBox);
+        this.renderFloatingMode();
+    },
+
+    initFloatingDrag(handleEl) {
+        handleEl.addEventListener('pointerdown', (e) => {
+            const rect = this.floatingEl.getBoundingClientRect();
+            this._dragInfo = {
+                startX: e.clientX, startY: e.clientY,
+                origLeft: rect.left, origTop: rect.top,
+                moved: false
+            };
+            handleEl.setPointerCapture(e.pointerId);
+        });
+
+        handleEl.addEventListener('pointermove', (e) => {
+            if (!this._dragInfo) return;
+            const dx = e.clientX - this._dragInfo.startX;
+            const dy = e.clientY - this._dragInfo.startY;
+            if (Math.abs(dx) > 3 || Math.abs(dy) > 3) this._dragInfo.moved = true;
+            if (!this._dragInfo.moved) return;
+
+            const margin = 8;
+            const maxLeft = window.innerWidth - this.floatingEl.offsetWidth - margin;
+            const maxTop = window.innerHeight - this.floatingEl.offsetHeight - margin;
+            const newLeft = Math.max(margin, Math.min(this._dragInfo.origLeft + dx, maxLeft));
+            const newTop = Math.max(margin, Math.min(this._dragInfo.origTop + dy, maxTop));
+
+            this.floatingEl.style.left = newLeft + 'px';
+            this.floatingEl.style.top = newTop + 'px';
+            this.floatingEl.style.right = 'auto';
+            this.floatingEl.style.bottom = 'auto';
+        });
+
+        const endDrag = (e) => {
+            if (!this._dragInfo) return;
+            if (this._dragInfo.moved) {
+                const rect = this.floatingEl.getBoundingClientRect();
+                localStorage.setItem('pomoFloatingPos', JSON.stringify({ left: rect.left, top: rect.top }));
+            }
+            // Keep _dragInfo.moved briefly so the click handler can suppress a click-through
+            setTimeout(() => { this._dragInfo = null; }, 0);
+        };
+        handleEl.addEventListener('pointerup', endDrag);
+        handleEl.addEventListener('pointercancel', endDrag);
+    },
+
+    renderFloatingMode() {
+        const expandedBox = document.getElementById('pomo-floating-expanded');
+        const collapsedBox = document.getElementById('pomo-floating-collapsed');
+        if (!expandedBox || !collapsedBox) return;
+        expandedBox.classList.toggle('hidden', this.floatingCollapsed);
+        collapsedBox.classList.toggle('hidden', !this.floatingCollapsed);
+    },
+
+    onNavigate(viewId) {
+        if (viewId === 'pomodoro') {
+            // Re-arm visibility: leaving the tab again should show the widget
+            this.floatingHiddenByUser = false;
+        }
+        this.refreshFloatingVisibility();
+    },
+
+    refreshFloatingVisibility() {
+        if (!this.floatingEl) return;
+        const active = !!this.timerId || this.timeLeft !== this.totalTime; // corriendo o en pausa a medias
+        const shouldShow = active && app.currentView !== 'pomodoro' && !this.floatingHiddenByUser;
+        this.floatingEl.classList.toggle('hidden', !shouldShow);
+        if (shouldShow) this.updateFloatingDisplay();
+    },
+
+    updateFloatingDisplay() {
+        if (!this.floatingEl || this.floatingEl.classList.contains('hidden')) return;
+        const mins = Math.floor(this.timeLeft / 60);
+        const secs = this.timeLeft % 60;
+        const timeStr = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+        const bigTime = document.getElementById('pomo-floating-time');
+        const smallTime = document.getElementById('pomo-floating-mini-time');
+        if (bigTime) bigTime.textContent = timeStr;
+        if (smallTime) smallTime.textContent = timeStr;
+
+        const statusEl = document.getElementById('pomo-floating-status');
+        if (statusEl) statusEl.textContent = this.isWorking ? 'Estudio' : 'Descanso';
+
+        const playPauseBtn = document.getElementById('pomo-floating-playpause');
+        if (playPauseBtn) {
+            playPauseBtn.innerHTML = this.timerId
+                ? '<i class="fa-solid fa-pause"></i>'
+                : '<i class="fa-solid fa-play"></i>';
+        }
+
+        const ring = document.getElementById('pomo-floating-ring');
+        if (ring) {
+            const circumference = 2 * Math.PI * 26;
+            const offset = circumference - (this.timeLeft / this.totalTime) * circumference;
+            ring.style.strokeDasharray = circumference;
+            ring.style.strokeDashoffset = offset;
+        }
     },
 
     startTimer() {
@@ -1406,11 +1772,13 @@ const Pomodoro = {
                 this.updateDisplay();
             }, 1000);
         }
+        this.refreshFloatingVisibility();
     },
 
     pauseTimer() {
         clearInterval(this.timerId);
         this.timerId = null;
+        this.refreshFloatingVisibility();
     },
 
     updateDisplay() {
@@ -1428,6 +1796,8 @@ const Pomodoro = {
         circle.style.strokeDashoffset = offset;
         circle.classList.remove('text-brand-500', 'text-green-500');
         circle.classList.add(this.isWorking ? 'text-brand-500' : 'text-green-500');
+
+        this.updateFloatingDisplay();
     },
 
     playAlarm() {
@@ -1725,6 +2095,183 @@ const ModalManager = {
 // ==========================================
 // MODULE: Auth Manager
 // ==========================================
+// ==========================================
+// MODULE: Theme Manager (color personalizado por cuenta)
+// ==========================================
+const ThemeManager = {
+    DEFAULT_HEX: '#f64b31',
+    presets: ['#f64b31', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899', '#64748b', '#0f172a', '#dc2626', '#14b8a6'],
+    currentHex: null,
+
+    init() {
+        this.btn = document.getElementById('btn-theme-color');
+        this.popover = document.getElementById('theme-color-popover');
+        this.swatchesEl = document.getElementById('theme-color-swatches');
+        this.customInput = document.getElementById('theme-color-custom');
+        this.resetBtn = document.getElementById('theme-color-reset');
+        if (!this.btn) return;
+
+        this.renderSwatches();
+
+        this.btn.onclick = (e) => {
+            e.stopPropagation();
+            this.popover.classList.toggle('hidden');
+        };
+        document.addEventListener('click', (e) => {
+            if (!this.popover.classList.contains('hidden') && !this.popover.contains(e.target) && e.target !== this.btn) {
+                this.popover.classList.add('hidden');
+            }
+        });
+
+        this.customInput.addEventListener('input', (e) => this.setColor(e.target.value));
+        this.resetBtn.onclick = () => this.setColor(this.DEFAULT_HEX);
+
+        // Aplica una preferencia guardada localmente mientras se resuelve el login,
+        // para evitar parpadeos de color al cargar.
+        const cached = localStorage.getItem('accentColor');
+        if (cached) this.applyColor(cached, { persist: false });
+    },
+
+    renderSwatches() {
+        this.swatchesEl.innerHTML = '';
+        this.presets.forEach(hex => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'w-7 h-7 rounded-full border-2 border-white dark:border-slate-800 shadow ring-1 ring-slate-200 dark:ring-slate-700 hover:scale-110 transition-transform';
+            btn.style.backgroundColor = hex;
+            btn.title = hex;
+            btn.onclick = () => this.setColor(hex);
+            this.swatchesEl.appendChild(btn);
+        });
+    },
+
+    setColor(hex) {
+        this.applyColor(hex, { persist: true });
+    },
+
+    applyColor(hex, opts = {}) {
+        const { persist = false } = opts;
+        const palette = this.generatePalette(hex);
+        Object.entries(palette).forEach(([stop, rgb]) => {
+            document.documentElement.style.setProperty(`--brand-${stop}`, rgb);
+        });
+        this.currentHex = hex;
+        if (this.customInput) this.customInput.value = hex;
+        localStorage.setItem('accentColor', hex);
+
+        if (persist) this.saveToAccount(hex);
+    },
+
+    async saveToAccount(hex) {
+        if (!AuthManager.currentUser) {
+            app.toast('Inicia sesión para guardar tu color de cuenta');
+            return;
+        }
+        if (!window.fb || !window.fb.db) return;
+        try {
+            await window.fb.setDoc(
+                window.fb.doc(window.fb.db, 'userPrefs', AuthManager.currentUser.uid),
+                { accentColor: hex },
+                { merge: true }
+            );
+            app.toast('Color guardado en tu cuenta ✓');
+        } catch (e) {
+            console.error(e);
+            app.toast('No se pudo guardar el color');
+        }
+    },
+
+    async loadForUser(uid) {
+        if (!window.fb || !window.fb.db) return;
+        try {
+            const snap = await window.fb.getDoc(window.fb.doc(window.fb.db, 'userPrefs', uid));
+            if (snap.exists() && snap.data().accentColor) {
+                this.applyColor(snap.data().accentColor, { persist: false });
+            }
+        } catch (e) { console.error(e); }
+    },
+
+    resetToDefault() {
+        this.applyColor(this.DEFAULT_HEX, { persist: false });
+        localStorage.removeItem('accentColor');
+    },
+
+    // ---- Generación de paleta a partir de un color base (tono 500) ----
+    generatePalette(hex) {
+        const { r, g, b } = this.hexToRgb(hex);
+        const { h, s } = this.rgbToHsl(r, g, b);
+
+        const stops = {
+            50:  { l: 96, sMul: 0.55 },
+            100: { l: 91, sMul: 0.65 },
+            200: { l: 82, sMul: 0.75 },
+            300: { l: 71, sMul: 0.85 },
+            400: { l: 60, sMul: 1 },
+            500: { l: 50, sMul: 1 },
+            600: { l: 40, sMul: 1 },
+            900: { l: 22, sMul: 0.9 },
+        };
+
+        const palette = {};
+        Object.entries(stops).forEach(([stop, cfg]) => {
+            const sat = Math.max(20, Math.min(95, s * cfg.sMul));
+            const { r: rr, g: gg, b: bb } = this.hslToRgb(h, sat, cfg.l);
+            palette[stop] = `${rr} ${gg} ${bb}`;
+        });
+        return palette;
+    },
+
+    hexToRgb(hex) {
+        hex = hex.replace('#', '');
+        if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+        const num = parseInt(hex, 16) || 0;
+        return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
+    },
+
+    rgbToHsl(r, g, b) {
+        r /= 255; g /= 255; b /= 255;
+        const max = Math.max(r, g, b), min = Math.min(r, g, b);
+        let h, s;
+        const l = (max + min) / 2;
+        if (max === min) {
+            h = s = 0;
+        } else {
+            const d = max - min;
+            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+            switch (max) {
+                case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                case g: h = (b - r) / d + 2; break;
+                default: h = (r - g) / d + 4;
+            }
+            h /= 6;
+        }
+        return { h: h * 360, s: s * 100, l: l * 100 };
+    },
+
+    hslToRgb(h, s, l) {
+        h /= 360; s /= 100; l /= 100;
+        let r, g, b;
+        if (s === 0) {
+            r = g = b = l;
+        } else {
+            const hue2rgb = (p, q, t) => {
+                if (t < 0) t += 1;
+                if (t > 1) t -= 1;
+                if (t < 1 / 6) return p + (q - p) * 6 * t;
+                if (t < 1 / 2) return q;
+                if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+                return p;
+            };
+            const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+            const p = 2 * l - q;
+            r = hue2rgb(p, q, h + 1 / 3);
+            g = hue2rgb(p, q, h);
+            b = hue2rgb(p, q, h - 1 / 3);
+        }
+        return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
+    }
+};
+
 const AuthManager = {
     currentUser: null,
     
@@ -1741,7 +2288,13 @@ const AuthManager = {
             window.fb.onAuthStateChanged(window.fb.auth, (user) => {
                 this.currentUser = user;
                 this.updateUI(user);
-                
+
+                if (user) {
+                    ThemeManager.loadForUser(user.uid);
+                } else {
+                    ThemeManager.resetToDefault();
+                }
+
                 if (['agenda', 'notebook'].includes(app.currentView)) {
                     app.navigate(app.currentView);
                 }
@@ -1793,6 +2346,7 @@ const AuthManager = {
             if (mmName) mmName.textContent = '';
             
             app.toast('Sesión cerrada');
+            if (ThemeManager.popover) ThemeManager.popover.classList.add('hidden');
             app.navigate('home');
         } catch (error) {
             console.error(error);
@@ -1826,18 +2380,37 @@ const Agenda = {
     currentDate: new Date(),
     selectedDate: new Date(),
     events: [],
+    viewMode: 'month',
     
     init() {
         this.prevBtn = document.getElementById('cal-prev');
         this.nextBtn = document.getElementById('cal-next');
         if (!this.prevBtn) return;
+
+        this.viewMode = localStorage.getItem('agendaViewMode') === 'week' ? 'week' : 'month';
+
+        const monthBtn = document.getElementById('agenda-view-month');
+        const weekBtn = document.getElementById('agenda-view-week');
+        if (monthBtn && weekBtn) {
+            monthBtn.onclick = () => this.setViewMode('month');
+            weekBtn.onclick = () => this.setViewMode('week');
+        }
+        this.updateViewToggleUI();
         
         this.prevBtn.onclick = () => {
-            this.currentDate.setMonth(this.currentDate.getMonth() - 1);
+            if (this.viewMode === 'week') {
+                this.currentDate.setDate(this.currentDate.getDate() - 7);
+            } else {
+                this.currentDate.setMonth(this.currentDate.getMonth() - 1);
+            }
             this.renderCalendar();
         };
         this.nextBtn.onclick = () => {
-            this.currentDate.setMonth(this.currentDate.getMonth() + 1);
+            if (this.viewMode === 'week') {
+                this.currentDate.setDate(this.currentDate.getDate() + 7);
+            } else {
+                this.currentDate.setMonth(this.currentDate.getMonth() + 1);
+            }
             this.renderCalendar();
         };
         
@@ -1845,8 +2418,49 @@ const Agenda = {
         
         this.renderCalendar();
     },
+
+    setViewMode(mode) {
+        this.viewMode = mode;
+        localStorage.setItem('agendaViewMode', mode);
+        this.updateViewToggleUI();
+        this.renderCalendar();
+    },
+
+    updateViewToggleUI() {
+        const monthBtn = document.getElementById('agenda-view-month');
+        const weekBtn = document.getElementById('agenda-view-week');
+        if (!monthBtn || !weekBtn) return;
+        const active = ['bg-brand-500', 'text-white', 'shadow-sm'];
+        const inactive = ['text-slate-600', 'dark:text-slate-300'];
+        const isMonth = this.viewMode === 'month';
+        monthBtn.classList.remove(...active, ...inactive);
+        monthBtn.classList.add(...(isMonth ? active : inactive));
+        weekBtn.classList.remove(...active, ...inactive);
+        weekBtn.classList.add(...(isMonth ? inactive : active));
+    },
+
+    isSameDay(a, b) {
+        return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+    },
+
+    getMonday(date) {
+        const d = new Date(date);
+        const day = d.getDay();
+        const diff = day === 0 ? -6 : 1 - day;
+        d.setDate(d.getDate() + diff);
+        d.setHours(0, 0, 0, 0);
+        return d;
+    },
     
     renderCalendar() {
+        if (this.viewMode === 'week') {
+            this.renderWeekView();
+        } else {
+            this.renderMonthView();
+        }
+    },
+
+    renderMonthView() {
         const monthEl = document.getElementById('cal-month');
         const daysEl = document.getElementById('cal-days');
         if (!monthEl) return;
@@ -1858,6 +2472,7 @@ const Agenda = {
         monthEl.textContent = `${monthNames[month]} ${year}`;
         
         daysEl.innerHTML = '';
+        daysEl.className = 'grid grid-cols-7 gap-1 text-sm';
         
         const firstDay = new Date(year, month, 1).getDay();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -1870,8 +2485,9 @@ const Agenda = {
         
         for (let i = 1; i <= daysInMonth; i++) {
             const isSelected = this.selectedDate.getDate() === i && this.selectedDate.getMonth() === month && this.selectedDate.getFullYear() === year;
+            const isToday = this.isSameDay(new Date(year, month, i), new Date());
             const btn = document.createElement('button');
-            btn.className = `w-full aspect-square flex items-center justify-center rounded-lg text-sm transition-colors hover:bg-slate-200 dark:hover:bg-slate-700 ${isSelected ? 'bg-brand-500 text-white font-bold shadow-md hover:bg-brand-600 dark:hover:bg-brand-600' : 'text-slate-700 dark:text-slate-300'}`;
+            btn.className = `w-full aspect-square flex items-center justify-center rounded-lg text-sm transition-colors hover:bg-slate-200 dark:hover:bg-slate-700 ${isSelected ? 'bg-brand-500 text-white font-bold shadow-md hover:bg-brand-600 dark:hover:bg-brand-600' : (isToday ? 'ring-2 ring-brand-400 text-slate-700 dark:text-slate-300' : 'text-slate-700 dark:text-slate-300')}`;
             btn.textContent = i;
             btn.onclick = () => {
                 this.selectedDate = new Date(year, month, i);
@@ -1880,6 +2496,55 @@ const Agenda = {
             };
             daysEl.appendChild(btn);
         }
+    },
+
+    renderWeekView() {
+        const monthEl = document.getElementById('cal-month');
+        const daysEl = document.getElementById('cal-days');
+        if (!monthEl) return;
+
+        const monthNamesShort = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+        const monday = this.getMonday(this.currentDate);
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+
+        monthEl.textContent = monday.getMonth() === sunday.getMonth()
+            ? `${monday.getDate()} – ${sunday.getDate()} ${monthNamesShort[sunday.getMonth()]} ${sunday.getFullYear()}`
+            : `${monday.getDate()} ${monthNamesShort[monday.getMonth()]} – ${sunday.getDate()} ${monthNamesShort[sunday.getMonth()]} ${sunday.getFullYear()}`;
+
+        daysEl.innerHTML = '';
+        daysEl.className = 'grid grid-cols-7 gap-1 text-sm flex-1';
+        const dayLabels = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+
+        for (let i = 0; i < 7; i++) {
+            const d = new Date(monday);
+            d.setDate(monday.getDate() + i);
+            const isSelected = this.isSameDay(d, this.selectedDate);
+            const isToday = this.isSameDay(d, new Date());
+            const hasEvents = this.events.some(ev => ev.date === this.toDateString(d));
+
+            const btn = document.createElement('button');
+            btn.className = `w-full h-full min-h-[52px] flex flex-col items-center justify-center gap-1 rounded-lg transition-colors hover:bg-slate-200 dark:hover:bg-slate-700 ${isSelected ? 'bg-brand-500 text-white font-bold shadow-md hover:bg-brand-600 dark:hover:bg-brand-600' : (isToday ? 'ring-2 ring-brand-400 text-slate-700 dark:text-slate-300' : 'text-slate-700 dark:text-slate-300')}`;
+            btn.innerHTML = `
+                <span class="text-[10px] uppercase opacity-70">${dayLabels[i]}</span>
+                <span class="font-bold text-base">${d.getDate()}</span>
+                <span class="w-1 h-1 rounded-full ${hasEvents ? (isSelected ? 'bg-white' : 'bg-brand-500') : 'bg-transparent'}"></span>
+            `;
+            btn.onclick = () => {
+                this.selectedDate = new Date(d);
+                this.currentDate = new Date(d);
+                this.renderCalendar();
+                this.renderEvents();
+            };
+            daysEl.appendChild(btn);
+        }
+    },
+
+    toDateString(d) {
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     },
     
     async loadEvents() {
@@ -1896,6 +2561,7 @@ const Agenda = {
                 this.events.push({ id: doc.id, ...doc.data() });
             });
             this.renderEvents();
+            this.renderCalendar();
         }, (error) => {
             console.error("Error cargando eventos:", error);
             app.toast("Error al cargar eventos. ¿Índices creados?");
@@ -1910,7 +2576,7 @@ const Agenda = {
         const year = this.selectedDate.getFullYear();
         const month = String(this.selectedDate.getMonth() + 1).padStart(2, '0');
         const day = String(this.selectedDate.getDate()).padStart(2, '0');
-        const dateString = `${year}-${month}-${day}`;
+        const dateString = this.toDateString(this.selectedDate);
         
         dateEl.textContent = `Eventos del ${day}/${month}/${year}`;
         
