@@ -205,10 +205,17 @@ body { transition: background-color 0.3s ease, color 0.3s ease; }
 .calc-grid-prog { display: grid; grid-template-columns: repeat(10, 1fr); }
 
 @media (max-width: 640px) {
+  /* IMPORTANTE: no cambiar a 5 columnas aquí. Los botones se colocan en el DOM
+     asumiendo una fila lógica de 10 columnas (incluido el "=" con rowSpan),
+     así que reducir a 5 columnas reordenaba y descuadraba las teclas.
+     En su lugar, mantenemos 10 columnas y encogemos botones/paddings. */
   .calc-grid-sci,
-  .calc-grid-prog { grid-template-columns: repeat(5, 1fr); }
-  .calc-btn { font-size: 0.85rem; min-height: 36px; padding: 2px; }
-  .calc-sub  { font-size: 0.55rem; }
+  .calc-grid-prog { gap: 2px; }
+  .calc-btn { min-height: 30px; padding: 1px; }
+  .calc-btn, .calc-btn * { font-size: 0.6rem !important; }
+  .calc-sub  { font-size: 0.42rem !important; }
+  #calc-panel { padding: 8px; }
+  #calc-display-main { font-size: 1.1rem !important; padding-right: 6.5rem !important; }
 }
 
 /* Custom input */

@@ -75,25 +75,18 @@ const app = {
 
     initTheme() {
         const themeToggleBtn = document.getElementById('theme-toggle');
-        const themeIcon = document.getElementById('theme-icon');
-        
-        if (localStorage.theme === 'light') {
-            document.documentElement.classList.remove('dark');
-            themeIcon.classList.replace('fa-sun', 'fa-moon');
-        } else {
-            document.documentElement.classList.add('dark');
-            themeIcon.classList.replace('fa-moon', 'fa-sun');
-        }
+
+        // Resuelve el modo inicial (claro / oscuro / personalizado) de forma
+        // centralizada para que nunca queden fondo y texto de modos distintos mezclados.
+        ThemeManager.resolveInitialMode();
 
         themeToggleBtn.addEventListener('click', () => {
-            document.documentElement.classList.toggle('dark');
-            if (document.documentElement.classList.contains('dark')) {
-                localStorage.theme = 'dark';
-                themeIcon.classList.replace('fa-moon', 'fa-sun');
-            } else {
-                localStorage.theme = 'light';
-                themeIcon.classList.replace('fa-sun', 'fa-moon');
-            }
+            // Cambiar manualmente entre claro/oscuro sale siempre del modo Personalizado,
+            // así se evita el conflicto de colores que aparecía al alternar modos.
+            const goingToDark = ThemeManager.mode === 'custom'
+                ? !document.documentElement.classList.contains('dark')
+                : ThemeManager.mode !== 'dark';
+            ThemeManager.setMode(goingToDark ? 'dark' : 'light');
         });
     },
 
@@ -2181,6 +2174,28 @@ const ThemeManager = {
     bgPresets: ['#f8fafc', '#eef2ff', '#fef9c3', '#dcfce7', '#fee2e2', '#e0f2fe', '#f5f5f4', '#0f172a', '#111827', '#1e293b', '#18181b', '#312e81'],
     currentBgHex: null,
 
+    // Modo activo: 'light' | 'dark' | 'custom'. En 'custom' se recalcula
+    // automáticamente si conviene texto/tarjetas claras u oscuras según el
+    // fondo elegido, para que nunca queden colores ilegibles al mezclarse
+    // con el modo claro/oscuro.
+    mode: 'dark',
+    lastPlainMode: 'dark',
+
+    // Se llama muy pronto (antes de que exista el resto de la UI) para fijar
+    // clase 'dark' / fondo personalizado sin parpadeos al cargar la página.
+    resolveInitialMode() {
+        this.navEl = this.navEl || document.querySelector('nav');
+        const savedMode = localStorage.getItem('siteMode');
+        const savedBg = localStorage.getItem('pageBgColor');
+        if (savedMode === 'custom' && savedBg) {
+            this.applyMode('custom', savedBg, { persist: false, updateIcon: true });
+        } else if (localStorage.theme === 'light') {
+            this.applyMode('light', null, { persist: false, updateIcon: true });
+        } else {
+            this.applyMode('dark', null, { persist: false, updateIcon: true });
+        }
+    },
+
     init() {
         this.btn = document.getElementById('btn-theme-color');
         this.popover = document.getElementById('theme-color-popover');
@@ -2195,6 +2210,11 @@ const ThemeManager = {
 
         this.renderSwatches();
         this.renderBgSwatches();
+        this.updateModeButtonsUI();
+
+        document.querySelectorAll('#site-mode-toggle button[data-mode]').forEach(btn => {
+            btn.onclick = () => this.setMode(btn.dataset.mode);
+        });
 
         this.btn.onclick = (e) => {
             e.stopPropagation();
@@ -2209,16 +2229,13 @@ const ThemeManager = {
         this.customInput.addEventListener('input', (e) => this.setColor(e.target.value));
         this.resetBtn.onclick = () => this.setColor(this.DEFAULT_HEX);
 
-        if (this.bgCustomInput) this.bgCustomInput.addEventListener('input', (e) => this.setPageBg(e.target.value));
-        if (this.bgResetBtn) this.bgResetBtn.onclick = () => this.resetPageBg();
+        if (this.bgCustomInput) this.bgCustomInput.addEventListener('input', (e) => this.setMode('custom', e.target.value));
+        if (this.bgResetBtn) this.bgResetBtn.onclick = () => this.setMode(this.lastPlainMode || 'light');
 
         // Aplica una preferencia guardada localmente mientras se resuelve el login,
         // para evitar parpadeos de color al cargar.
         const cached = localStorage.getItem('accentColor');
         if (cached) this.applyColor(cached, { persist: false });
-
-        const cachedBg = localStorage.getItem('pageBgColor');
-        if (cachedBg) this.applyPageBg(cachedBg, { persist: false });
     },
 
     renderSwatches() {
@@ -2243,7 +2260,7 @@ const ThemeManager = {
             btn.className = 'w-7 h-7 rounded-full border-2 border-white dark:border-slate-800 shadow ring-1 ring-slate-200 dark:ring-slate-700 hover:scale-110 transition-transform';
             btn.style.backgroundColor = hex;
             btn.title = hex;
-            btn.onclick = () => this.setPageBg(hex);
+            btn.onclick = () => this.setMode('custom', hex);
             this.bgSwatchesEl.appendChild(btn);
         });
     },
@@ -2265,51 +2282,93 @@ const ThemeManager = {
         if (persist) this.saveToAccount(hex);
     },
 
-    setPageBg(hex) {
-        this.applyPageBg(hex, { persist: true });
+    // Cambia de modo. 'light' y 'dark' son los modos normales de Tailwind;
+    // 'custom' aplica un fondo elegido por el usuario y decide automáticamente
+    // si usar texto/tarjetas de estilo claro u oscuro según ese color, para
+    // que no se mezclen (eso era lo que "bugueaba" los colores al alternar).
+    setMode(mode, bgHex) {
+        if (mode === 'custom') {
+            const hex = bgHex || this.currentBgHex || localStorage.getItem('pageBgColor') || this.bgPresets[0];
+            this.applyMode('custom', hex, { persist: true, updateIcon: true });
+        } else {
+            this.applyMode(mode, null, { persist: true, updateIcon: true });
+        }
     },
 
-    // Personaliza el color de fondo de la web (cuerpo de la página + barra de navegación),
-    // dejando el resto de tarjetas/paneles con sus estilos habituales.
-    applyPageBg(hex, opts = {}) {
-        const { persist = false } = opts;
-        if (hex) {
-            document.body.style.backgroundColor = hex;
-            const { r, g, b } = this.hexToRgb(hex);
+    applyMode(mode, bgHex, opts = {}) {
+        const { persist = false, updateIcon = false } = opts;
+        const themeIcon = document.getElementById('theme-icon');
+        let isDarkClass;
+
+        if (mode === 'custom' && bgHex) {
+            isDarkClass = !this.isColorLight(bgHex);
+            document.documentElement.classList.toggle('dark', isDarkClass);
+            document.body.style.backgroundColor = bgHex;
+            const { r, g, b } = this.hexToRgb(bgHex);
             if (this.navEl) this.navEl.style.backgroundColor = `rgba(${r}, ${g}, ${b}, 0.9)`;
-            localStorage.setItem('pageBgColor', hex);
+            this.currentBgHex = bgHex;
+            if (this.bgCustomInput) this.bgCustomInput.value = bgHex;
+            localStorage.setItem('pageBgColor', bgHex);
+            localStorage.setItem('siteMode', 'custom');
+            localStorage.theme = isDarkClass ? 'dark' : 'light';
         } else {
+            isDarkClass = mode === 'dark';
+            document.documentElement.classList.toggle('dark', isDarkClass);
             document.body.style.backgroundColor = '';
             if (this.navEl) this.navEl.style.backgroundColor = '';
+            this.currentBgHex = null;
+            localStorage.setItem('siteMode', mode);
+            localStorage.theme = mode;
             localStorage.removeItem('pageBgColor');
+            this.lastPlainMode = mode;
         }
-        this.currentBgHex = hex;
-        if (this.bgCustomInput) this.bgCustomInput.value = hex || '#f8fafc';
 
-        if (persist) this.savePageBgToAccount(hex);
+        if (updateIcon && themeIcon) {
+            themeIcon.classList.remove('fa-sun', 'fa-moon');
+            themeIcon.classList.add(isDarkClass ? 'fa-sun' : 'fa-moon');
+        }
+
+        this.mode = mode;
+        this.updateModeButtonsUI();
+
+        if (persist) this.savePageBgToAccount(mode === 'custom' ? bgHex : null, mode);
     },
 
-    resetPageBg() {
-        this.applyPageBg(null, { persist: false });
-        this.savePageBgToAccount(null);
+    updateModeButtonsUI() {
+        ['light', 'dark', 'custom'].forEach(m => {
+            const btn = document.getElementById(`site-mode-${m}`);
+            if (!btn) return;
+            const active = ['bg-white', 'dark:bg-[#1a2233]', 'shadow-sm', 'text-brand-600', 'dark:text-brand-400'];
+            const inactive = ['text-slate-500', 'dark:text-slate-400'];
+            btn.classList.remove(...active, ...inactive);
+            btn.classList.add(...(m === this.mode ? active : inactive));
+        });
     },
 
-    async savePageBgToAccount(hex) {
+    // Determina si un color de fondo es percibido como "claro" para poder elegir
+    // automáticamente texto/tarjetas legibles en modo Personalizado.
+    isColorLight(hex) {
+        const { r, g, b } = this.hexToRgb(hex);
+        const perceived = (r * 299 + g * 587 + b * 114) / 1000;
+        return perceived > 150;
+    },
+
+    async savePageBgToAccount(hex, mode) {
         if (!AuthManager.currentUser) {
-            app.toast('Inicia sesión para guardar tu fondo de cuenta');
+            app.toast('Inicia sesión para guardar tu modo de cuenta');
             return;
         }
         if (!window.fb || !window.fb.db) return;
         try {
             await window.fb.setDoc(
                 window.fb.doc(window.fb.db, 'userPrefs', AuthManager.currentUser.uid),
-                { pageBgColor: hex || null },
+                { pageBgColor: hex || null, siteMode: mode },
                 { merge: true }
             );
-            app.toast('Fondo guardado en tu cuenta ✓');
+            app.toast('Preferencia guardada en tu cuenta ✓');
         } catch (e) {
             console.error(e);
-            app.toast('No se pudo guardar el fondo');
+            app.toast('No se pudo guardar la preferencia');
         }
     },
 
@@ -2339,7 +2398,11 @@ const ThemeManager = {
             if (snap.exists()) {
                 const data = snap.data();
                 if (data.accentColor) this.applyColor(data.accentColor, { persist: false });
-                if (data.pageBgColor) this.applyPageBg(data.pageBgColor, { persist: false });
+                if (data.siteMode === 'custom' && data.pageBgColor) {
+                    this.applyMode('custom', data.pageBgColor, { persist: false, updateIcon: true });
+                } else if (data.siteMode === 'light' || data.siteMode === 'dark') {
+                    this.applyMode(data.siteMode, null, { persist: false, updateIcon: true });
+                }
             }
         } catch (e) { console.error(e); }
     },
@@ -2347,7 +2410,9 @@ const ThemeManager = {
     resetToDefault() {
         this.applyColor(this.DEFAULT_HEX, { persist: false });
         localStorage.removeItem('accentColor');
-        this.applyPageBg(null, { persist: false });
+        this.applyMode(this.lastPlainMode || 'dark', null, { persist: false, updateIcon: true });
+        localStorage.removeItem('siteMode');
+        localStorage.removeItem('pageBgColor');
     },
 
     // ---- Generación de paleta a partir de un color base (tono 500) ----

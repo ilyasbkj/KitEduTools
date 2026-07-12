@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduToolKit</title>
+    <title>KitEduTools</title>
     <!-- Tailwind CSS (CDN) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Tailwind Configuration -->
@@ -72,7 +72,7 @@
                         <div class="w-8 h-8 rounded-lg bg-brand-500 flex items-center justify-center text-white mr-2 shadow-lg shadow-brand-500/30">
                             <i class="fa-solid fa-graduation-cap text-sm"></i>
                         </div>
-                        <span class="font-bold text-lg tracking-tight">EduToolKit</span>
+                        <span class="font-bold text-lg tracking-tight">KitEduTools</span>
                     </div>
                 </div>
                 <!-- Theme & Profile -->
@@ -94,6 +94,13 @@
 
                             <!-- Color customization popover -->
                             <div id="theme-color-popover" class="hidden absolute right-0 top-12 z-50 w-64 bg-white dark:bg-[#151b26] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-4 max-h-[80vh] overflow-y-auto">
+                                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Modo</p>
+                                <div id="site-mode-toggle" class="grid grid-cols-3 gap-1 bg-slate-100 dark:bg-[#0f141e] rounded-lg p-1 text-xs font-semibold mb-4">
+                                    <button id="site-mode-light" data-mode="light" class="py-1.5 rounded-md transition-colors">Claro</button>
+                                    <button id="site-mode-dark" data-mode="dark" class="py-1.5 rounded-md transition-colors">Oscuro</button>
+                                    <button id="site-mode-custom" data-mode="custom" class="py-1.5 rounded-md transition-colors">Personal.</button>
+                                </div>
+
                                 <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Color de acento</p>
                                 <div id="theme-color-swatches" class="grid grid-cols-6 gap-2 mb-3"></div>
                                 <div class="flex items-center gap-2 mb-4">
@@ -104,7 +111,8 @@
 
                                 <div class="w-full h-px bg-slate-200 dark:bg-slate-700 mb-4"></div>
 
-                                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Fondo de la página</p>
+                                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Fondo de la página</p>
+                                <p class="text-[11px] text-slate-400 mb-3">Elegir un fondo activa el modo Personalizado.</p>
                                 <div id="bg-color-swatches" class="grid grid-cols-6 gap-2 mb-3"></div>
                                 <div class="flex items-center gap-2">
                                     <input type="color" id="bg-color-custom" value="#f8fafc" class="w-9 h-9 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer bg-transparent p-0">
@@ -222,7 +230,7 @@
 
             <!-- CALCULATOR VIEW (Multi-Mode) -->
             <div id="view-calculator" class="view-section hidden fade-in w-full max-w-3xl mx-auto h-full flex flex-col justify-center items-center py-4">
-                <div class="w-full bg-[#e8ebed] dark:bg-[#2c323c] rounded-lg shadow-2xl p-4 border border-slate-300 dark:border-slate-700 flex flex-col gap-3 relative select-none">
+                <div id="calc-panel" class="w-full bg-[#e8ebed] dark:bg-[#2c323c] rounded-lg shadow-2xl p-4 border border-slate-300 dark:border-slate-700 flex flex-col gap-3 relative select-none">
                     
                     <!-- Header & Input -->
                     <div class="relative flex items-center bg-white dark:bg-[#1a2233] border border-slate-300 dark:border-slate-600 rounded p-1 shadow-inner min-h-[48px]">
@@ -446,7 +454,7 @@
                     
                     <!-- Circular Timer Display -->
                     <div class="relative w-64 h-64 flex items-center justify-center mb-8">
-                        <svg class="absolute inset-0 w-full h-full transform -rotate-90 drop-shadow-md">
+                        <svg class="absolute inset-0 w-full h-full transform -rotate-90 drop-shadow-md" viewBox="0 0 256 256">
                             <circle cx="128" cy="128" r="120" stroke="currentColor" stroke-width="8" fill="transparent" class="text-slate-100 dark:text-slate-800" />
                             <circle id="pomo-progress" cx="128" cy="128" r="120" stroke="currentColor" stroke-width="8" stroke-linecap="round" fill="transparent" stroke-dasharray="753.98" stroke-dashoffset="0" class="text-brand-500 transition-all duration-1000 linear" />
                         </svg>
