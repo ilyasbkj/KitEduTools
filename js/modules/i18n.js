@@ -95,7 +95,7 @@ export const I18n = {
             'tool_text_desc': 'Anàlisi detallada de paraules, caràcters i temps de lectura.',
             'tool_spell_desc': 'Corrector avançat multilingüe per a textos impecables.',
             'tool_mark_desc': 'Escriu i previsualitza arxius Markdown en temps real.',
-            'tool_py_desc': 'Entorn d\\'execució de Python amb suport per a llibreries.',
+            'tool_py_desc': "Entorn d'execució de Python amb suport per a llibreries.",
             'tool_gui_desc': 'Aprèn els fonaments de Python i HTML amb guies interactives.',
             'tool_agen_desc': 'Gestiona els teus esdeveniments diaris amb emmagatzematge segur al núvol. ☁️',
             'tool_note_desc': 'Guarda els teus apunts per assignatura, inclou imatges i enllaços. ☁️',
