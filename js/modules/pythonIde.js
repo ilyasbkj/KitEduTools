@@ -12,16 +12,14 @@ export const PythonIde = {
         const fileInput = document.getElementById('py-file-input');
         const exportBtn = document.getElementById('py-export-btn');
         const clearBtn = document.getElementById('py-clear-btn');
+        const stdinTextarea = document.getElementById('py-stdin-textarea');
+        let stdinLines = [];
+        let stdinIndex = 0;
         
         if (!runBtn) return;
         
         // Print function override to redirect output to our console
         const printOutput = (text) => {
-            if (output.textContent === 'Cargando entorno Python... espere por favor.\n' || 
-                output.textContent === 'Python environment loaded.\n' ||
-                output.textContent === 'Entorno de Python cargado y listo.\n') {
-                output.textContent = '';
-            }
             output.textContent += text + '\\n';
             output.scrollTop = output.scrollHeight;
         };
@@ -37,7 +35,14 @@ export const PythonIde = {
             
             this.pyodide = await window.loadPyodide({
                 indexURL: "https://cdn.jsdelivr.net/pyodide/v0.25.0/full/",
-                stdin: () => window.prompt("Input de Python:")
+                stdin: () => {
+                    if (stdinIndex < stdinLines.length) {
+                        const val = stdinLines[stdinIndex++];
+                        printOutput(val); // Mostrar en la terminal lo que se introdujo
+                        return val;
+                    }
+                    return ""; // EOF
+                }
             });
             
             // Setup micropip for package installation
@@ -48,7 +53,6 @@ export const PythonIde = {
             
             status.textContent = 'Python Listo';
             status.className = 'text-xs font-bold px-2 py-1 bg-green-100 text-green-700 rounded-lg dark:bg-green-900/40 dark:text-green-400';
-            output.textContent = 'Entorno de Python cargado y listo.\\n';
             
             runBtn.disabled = false;
             installBtn.disabled = false;
@@ -62,16 +66,31 @@ export const PythonIde = {
         runBtn.addEventListener('click', async () => {
             if (!this.pyodide) return;
             const code = textarea.value;
-            output.textContent = '>>> Ejecutando...\\n';
+            
+            // Preparar Entrada Estándar
+            if (stdinTextarea) {
+                stdinLines = stdinTextarea.value.split('\\n');
+                stdinIndex = 0;
+            }
+            
+            // Limpiar terminal
+            output.textContent = '';
+            
             try {
-                // To support top-level await in scripts
                 await this.pyodide.loadPackagesFromImports(code);
                 let result = await this.pyodide.runPythonAsync(code);
                 if (result !== undefined) {
                     printOutput(result);
                 }
             } catch (err) {
-                printOutput(err);
+                // Formatear error de Pyodide para ocultar la traza JS interna
+                const errStr = err.toString();
+                const cleanErr = errStr.split('File "<exec>"').pop();
+                if (cleanErr) {
+                    printOutput('File "<exec>"' + cleanErr);
+                } else {
+                    printOutput(errStr);
+                }
             }
         });
 
