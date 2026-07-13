@@ -221,10 +221,21 @@ const app = {
             return matchSearch && matchCat;
         });
 
-        // SORT BY CATEGORY THEN BY NAME
+        // SORT BY CUSTOM CATEGORY ORDER AND BADGE
+        const catOrder = { 'cat_study': 1, 'cat_math': 2, 'cat_dev': 3 };
+        
         filteredTools.sort((a, b) => {
-            if (a.cat < b.cat) return -1;
-            if (a.cat > b.cat) return 1;
+            const aIsAccount = a.badgeKey === 'badge_account';
+            const bIsAccount = b.badgeKey === 'badge_account';
+            
+            if (aIsAccount && !bIsAccount) return 1;
+            if (!aIsAccount && bIsAccount) return -1;
+            
+            const orderA = catOrder[a.catKey] || 99;
+            const orderB = catOrder[b.catKey] || 99;
+            
+            if (orderA !== orderB) return orderA - orderB;
+            
             return a.name.localeCompare(b.name);
         });
 
