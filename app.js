@@ -49,12 +49,28 @@ const app = {
     ],
 
     init() {
+        I18n.init();
         this.initTheme();
         this.initFilters();
         this.renderHomeCards();
         this.initSearch();
         
-        I18n.init();
+        Calculator.init();
+        Converter.init();
+        HtmlEditor.init();
+        MindMap.init();
+        Pomodoro.init();
+        TextAnalyzer.init();
+        SpellChecker.init();
+        MarkdownEditor.init();
+        PythonIde.init();
+        Guides.init();
+        ModalManager.init();
+        AuthManager.init();
+        ThemeManager.init();
+        Agenda.init();
+        Notebook.init();
+        
         this.initMobileMenu();
         this.initRouting();
         document.addEventListener('languageChanged', () => {
