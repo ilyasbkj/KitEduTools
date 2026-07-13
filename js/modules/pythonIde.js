@@ -8,6 +8,10 @@ export const PythonIde = {
         const status = document.getElementById('py-status');
         const textarea = document.getElementById('py-textarea');
         const packageInput = document.getElementById('py-package-input');
+        const importBtn = document.getElementById('py-import-btn');
+        const fileInput = document.getElementById('py-file-input');
+        const exportBtn = document.getElementById('py-export-btn');
+        const clearBtn = document.getElementById('py-clear-btn');
         
         if (!runBtn) return;
         
@@ -32,7 +36,8 @@ export const PythonIde = {
             }
             
             this.pyodide = await window.loadPyodide({
-                indexURL: "https://cdn.jsdelivr.net/pyodide/v0.25.0/full/"
+                indexURL: "https://cdn.jsdelivr.net/pyodide/v0.25.0/full/",
+                stdin: () => window.prompt("Input de Python:")
             });
             
             // Setup micropip for package installation
@@ -90,5 +95,38 @@ export const PythonIde = {
             installBtn.innerHTML = '<i class="fa-solid fa-download"></i>';
             output.scrollTop = output.scrollHeight;
         });
+
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
+                output.textContent = '>>> Consola limpiada.\\n';
+            });
+        }
+
+        if (importBtn && fileInput) {
+            importBtn.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    textarea.value = ev.target.result;
+                };
+                reader.readAsText(file);
+                e.target.value = '';
+            });
+        }
+
+        if (exportBtn) {
+            exportBtn.addEventListener('click', () => {
+                const code = textarea.value;
+                const blob = new Blob([code], { type: 'text/x-python' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'script.py';
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+        }
     }
 };

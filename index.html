@@ -397,7 +397,13 @@ Escribe aquí usando **Markdown**.
                     <h2 class="text-3xl font-bold"><i class="fa-brands fa-python text-brand-500 mr-2"></i> <span data-i18n="nav_python">Python IDE</span></h2>
                     <div class="flex items-center gap-2">
                         <span id="py-status" class="text-xs font-bold px-2 py-1 bg-slate-100 text-slate-600 rounded-lg dark:bg-slate-800 dark:text-slate-400">Esperando...</span>
-                        <div class="relative flex items-center ml-2 border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden bg-white dark:bg-[#1a2233]">
+                        
+                        <button id="py-import-btn" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg transition-colors ml-2" title="Importar .py"><i class="fa-solid fa-file-import"></i></button>
+                        <input type="file" id="py-file-input" accept=".py" class="hidden">
+                        <button id="py-export-btn" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg transition-colors" title="Descargar .py"><i class="fa-solid fa-file-export"></i></button>
+                        <button id="py-clear-btn" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg transition-colors mr-2" title="Limpiar Consola"><i class="fa-solid fa-eraser"></i></button>
+
+                        <div class="relative flex items-center border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden bg-white dark:bg-[#1a2233]">
                             <input type="text" id="py-package-input" placeholder="Librería (ej: numpy)" class="px-3 py-2 text-sm bg-transparent outline-none w-40 text-slate-800 dark:text-slate-200" data-i18n-placeholder="py_pkg_ph">
                             <button id="py-install-btn" disabled class="px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors border-l border-slate-200 dark:border-slate-700" title="Instalar Librería"><i class="fa-solid fa-download"></i></button>
                         </div>
