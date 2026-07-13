@@ -8,6 +8,8 @@ export const I18n = {
             'nav_converter': 'Conversor',
             'nav_editor': 'Editor HTML',
             'nav_markdown': 'Editor Markdown',
+            'nav_python': 'Python IDE',
+            'nav_guides': 'Centro de Guías',
             'nav_pomodoro': 'Pomodoro',
             'nav_textanalyzer': 'Analizador Texto',
             'nav_spellchecker': 'Ortografía',
@@ -39,13 +41,20 @@ export const I18n = {
             'tool_text_desc': 'Análisis detallado de palabras, caracteres y tiempo de lectura.',
             'tool_spell_desc': 'Corrector avanzado multilingüe para textos impecables.',
             'tool_mark_desc': 'Escribe y previsualiza archivos Markdown en tiempo real.',
+            'tool_py_desc': 'Entorno de ejecución de Python con soporte para librerías.',
+            'tool_gui_desc': 'Aprende los fundamentos de Python y HTML con guías interactivas.',
             'tool_agen_desc': 'Gestiona tus eventos diarios con almacenamiento seguro en la nube. ☁️',
             'tool_note_desc': 'Guarda tus apuntes por asignatura, incluye imágenes y enlaces. ☁️',
             'tool_mind_desc': 'Crea y guarda esquemas interactivos en tu cuenta. ☁️',
             
             'badge_account': 'Cuenta',
             
-            'no_tools_found': 'No se encontraron herramientas.'
+            'no_tools_found': 'No se encontraron herramientas.',
+            'py_pkg_ph': 'Librería (ej: numpy)',
+            'py_run': 'Ejecutar',
+            'guides_title': 'Temas',
+            'guide_python': 'Guía Python',
+            'guide_html': 'Guía HTML'
         },
         'ca': {
             'nav_tools': 'Eines',
@@ -53,6 +62,8 @@ export const I18n = {
             'nav_converter': 'Conversor',
             'nav_editor': 'Editor HTML',
             'nav_markdown': 'Editor Markdown',
+            'nav_python': 'Python IDE',
+            'nav_guides': 'Centre de Guies',
             'nav_pomodoro': 'Pomodoro',
             'nav_textanalyzer': 'Analitzador Text',
             'nav_spellchecker': 'Ortografia',
@@ -84,13 +95,20 @@ export const I18n = {
             'tool_text_desc': 'Anàlisi detallada de paraules, caràcters i temps de lectura.',
             'tool_spell_desc': 'Corrector avançat multilingüe per a textos impecables.',
             'tool_mark_desc': 'Escriu i previsualitza arxius Markdown en temps real.',
+            'tool_py_desc': 'Entorn d\\'execució de Python amb suport per a llibreries.',
+            'tool_gui_desc': 'Aprèn els fonaments de Python i HTML amb guies interactives.',
             'tool_agen_desc': 'Gestiona els teus esdeveniments diaris amb emmagatzematge segur al núvol. ☁️',
             'tool_note_desc': 'Guarda els teus apunts per assignatura, inclou imatges i enllaços. ☁️',
             'tool_mind_desc': 'Crea i guarda esquemes interactius al teu compte. ☁️',
             
             'badge_account': 'Compte',
             
-            'no_tools_found': 'No s\'han trobat eines.'
+            'no_tools_found': 'No s\'han trobat eines.',
+            'py_pkg_ph': 'Llibreria (ex: numpy)',
+            'py_run': 'Executar',
+            'guides_title': 'Temes',
+            'guide_python': 'Guia Python',
+            'guide_html': 'Guia HTML'
         },
         'en': {
             'nav_tools': 'Tools',
@@ -98,6 +116,8 @@ export const I18n = {
             'nav_converter': 'Converter',
             'nav_editor': 'HTML Editor',
             'nav_markdown': 'Markdown Editor',
+            'nav_python': 'Python IDE',
+            'nav_guides': 'Guides Center',
             'nav_pomodoro': 'Pomodoro',
             'nav_textanalyzer': 'Text Analyzer',
             'nav_spellchecker': 'Spellchecker',
@@ -129,13 +149,20 @@ export const I18n = {
             'tool_text_desc': 'Detailed analysis of words, characters and reading time.',
             'tool_spell_desc': 'Advanced multilingual spellchecker for flawless texts.',
             'tool_mark_desc': 'Write and preview Markdown files in real time.',
+            'tool_py_desc': 'Python execution environment with library support.',
+            'tool_gui_desc': 'Learn Python and HTML fundamentals with interactive guides.',
             'tool_agen_desc': 'Manage your daily events with secure cloud storage. ☁️',
             'tool_note_desc': 'Save your notes by subject, includes images and links. ☁️',
             'tool_mind_desc': 'Create and save interactive schemes in your account. ☁️',
             
             'badge_account': 'Account',
             
-            'no_tools_found': 'No tools found.'
+            'no_tools_found': 'No tools found.',
+            'py_pkg_ph': 'Package (ex: numpy)',
+            'py_run': 'Run',
+            'guides_title': 'Topics',
+            'guide_python': 'Python Guide',
+            'guide_html': 'HTML Guide'
         }
     },
 

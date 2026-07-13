@@ -4,6 +4,8 @@ import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, q
 import { MarkdownEditor } from './js/modules/markdown.js';
 import { Calculator } from './js/modules/calculator.js';
 import { I18n } from './js/modules/i18n.js';
+import { PythonIde } from './js/modules/pythonIde.js';
+import { Guides } from './js/modules/guides.js';
 
 // TODO: Configuración Firebase (Reemplazar con tus credenciales)
 const firebaseConfig = {
@@ -39,6 +41,8 @@ const app = {
         { id: 'textanalyzer', nameKey: 'nav_textanalyzer', catKey: 'cat_study', icon: 'fa-chart-simple', color: 'text-brand-500', bg: 'bg-brand-50 dark:bg-brand-900/20', descKey: 'tool_text_desc' },
         { id: 'spellchecker', nameKey: 'nav_spellchecker', catKey: 'cat_study', icon: 'fa-spell-check', color: 'text-brand-500', bg: 'bg-brand-50 dark:bg-brand-900/20', descKey: 'tool_spell_desc' },
         { id: 'markdown', nameKey: 'nav_markdown', catKey: 'cat_dev', icon: 'fa-file-pen', color: 'text-brand-500', bg: 'bg-brand-50 dark:bg-brand-900/20', descKey: 'tool_mark_desc' },
+        { id: 'python', nameKey: 'nav_python', catKey: 'cat_dev', icon: 'fa-python', color: 'text-brand-500', bg: 'bg-brand-50 dark:bg-brand-900/20', descKey: 'tool_py_desc' },
+        { id: 'guides', nameKey: 'nav_guides', catKey: 'cat_study', icon: 'fa-book', color: 'text-brand-500', bg: 'bg-brand-50 dark:bg-brand-900/20', descKey: 'tool_gui_desc' },
         { id: 'agenda', nameKey: 'nav_agenda', catKey: 'cat_study', icon: 'fa-calendar-days', color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20', descKey: 'tool_agen_desc', badgeKey: 'badge_account' },
         { id: 'notebook', nameKey: 'nav_notebook', catKey: 'cat_study', icon: 'fa-book-journal-whills', color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20', descKey: 'tool_note_desc', badgeKey: 'badge_account' },
         { id: 'mindmap', nameKey: 'nav_mindmap', catKey: 'cat_study', icon: 'fa-diagram-project', color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20', descKey: 'tool_mind_desc', badgeKey: 'badge_account' },
@@ -51,19 +55,6 @@ const app = {
         this.initSearch();
         
         I18n.init();
-        Calculator.init();
-        Converter.init();
-        HtmlEditor.init();
-        MindMap.init();
-        Pomodoro.init();
-        TextAnalyzer.init();
-        SpellChecker.init();
-        MarkdownEditor.init();
-        ModalManager.init();
-        AuthManager.init();
-        ThemeManager.init();
-        Agenda.init();
-        Notebook.init();
         this.initMobileMenu();
         this.initRouting();
         document.addEventListener('languageChanged', () => {
