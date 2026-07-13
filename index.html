@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4056952798195040"
+     crossorigin="anonymous"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KitEduTools</title>
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: 'rgb(var(--brand-50) / <alpha-value>)',
+                            100: 'rgb(var(--brand-100) / <alpha-value>)',
+                            200: 'rgb(var(--brand-200) / <alpha-value>)',
+                            300: 'rgb(var(--brand-300) / <alpha-value>)',
+                            400: 'rgb(var(--brand-400) / <alpha-value>)',
+                            500: 'rgb(var(--brand-500) / <alpha-value>)',
+                            600: 'rgb(var(--brand-600) / <alpha-value>)',
+                            900: 'rgb(var(--brand-900) / <alpha-value>)',
+                        },
+                        darkbg: '#111827', /* gray-900 */
+                        darkcard: '#1f2937', /* gray-800 */
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Math.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
+    <!-- Marked.js -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        :root {
+            /* Paleta de acento por defecto (coral). Se sobreescriben en JS
+               al personalizar colores desde la cuenta. Formato "R G B". */
+            --brand-50: 255 241 240;
+            --brand-100: 255 224 220;
+            --brand-200: 255 198 190;
+            --brand-300: 255 161 147;
+            --brand-400: 255 111 89;
+            --brand-500: 246 75 49;
+            --brand-600: 227 48 21;
+            --brand-900: 127 33 19;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-[#0f141e] dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-300">
+
+    <!-- Global Top Navigation -->
+    <nav class="border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-[#0f141e]/80 backdrop-blur-md sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex items-center justify-between h-14">
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center">
+                    <button id="mobile-menu-btn" class="md:hidden mr-3 p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 transition-colors" title="Menú">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                    <div class="flex items-center cursor-pointer" onclick="window.app.navigate('home')">
+                        <div class="w-8 h-8 rounded-lg bg-brand-500 flex items-center justify-center text-white mr-2 shadow-lg shadow-brand-500/30">
+                            <i class="fa-solid fa-graduation-cap text-sm"></i>
+                        </div>
+                        <span class="font-bold text-lg tracking-tight">KitEduTools</span>
+                    </div>
+                </div>
+                <!-- Theme & Profile -->
+                <div class="flex items-center gap-2">
+                    <button id="theme-toggle" class="p-2 rounded-full text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                        <i class="fa-solid fa-sun text-lg" id="theme-icon"></i>
+                    </button>
+                    <div id="user-profile-container" class="relative flex items-center ml-1 border-l border-slate-200 dark:border-slate-700 pl-3">
+                        <button id="btn-login" class="bg-brand-500 hover:bg-brand-600 text-white font-medium py-1.5 px-3 rounded-lg shadow-sm transition-colors text-sm flex items-center gap-1.5">
+                            <i class="fa-brands fa-google text-xs"></i> <span class="hidden xs:inline">Conectar</span><span class="xs:hidden">G</span>
+                        </button>
+                        <div id="user-info" class="hidden items-center gap-2 relative">
+                            <button id="btn-theme-color" class="text-slate-400 hover:text-brand-500 transition-colors p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800" title="Personalizar colores">
+                                <i class="fa-solid fa-palette"></i>
+                            </button>
+                            <img id="user-avatar" src="" alt="Avatar" class="w-8 h-8 rounded-full border-2 border-brand-500 shadow-sm cursor-pointer" title="Tu Perfil">
+                            <span id="user-name" class="font-medium text-sm hidden md:block"></span>
+                            <button id="btn-logout" class="text-slate-400 hover:text-red-500 transition-colors p-1" title="Cerrar sesión"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
+
+                            <!-- Color customization popover -->
+                            <div id="theme-color-popover" class="hidden absolute right-0 top-12 z-50 w-64 bg-white dark:bg-[#151b26] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-4 max-h-[80vh] overflow-y-auto">
+                                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Modo</p>
+                                <div id="site-mode-toggle" class="grid grid-cols-3 gap-1 bg-slate-100 dark:bg-[#0f141e] rounded-lg p-1 text-xs font-semibold mb-4">
+                                    <button id="site-mode-light" data-mode="light" class="py-1.5 rounded-md transition-colors">Claro</button>
+                                    <button id="site-mode-dark" data-mode="dark" class="py-1.5 rounded-md transition-colors">Oscuro</button>
+                                    <button id="site-mode-custom" data-mode="custom" class="py-1.5 rounded-md transition-colors">Personal.</button>
+                                </div>
+
+                                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Color de acento</p>
+                                <div id="theme-color-swatches" class="grid grid-cols-6 gap-2 mb-3"></div>
+                                <div class="flex items-center gap-2 mb-4">
+                                    <input type="color" id="theme-color-custom" value="#f64b31" class="w-9 h-9 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer bg-transparent p-0">
+                                    <span class="text-xs text-slate-400 flex-1">Color personalizado</span>
+                                    <button id="theme-color-reset" class="text-xs font-medium text-slate-400 hover:text-brand-500 transition-colors" title="Restablecer">Reset</button>
+                                </div>
+
+                                <div class="w-full h-px bg-slate-200 dark:bg-slate-700 mb-4"></div>
+
+                                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Fondo de la página</p>
+                                <p class="text-[11px] text-slate-400 mb-3">Elegir un fondo activa el modo Personalizado.</p>
+                                <div id="bg-color-swatches" class="grid grid-cols-6 gap-2 mb-3"></div>
+                                <div class="flex items-center gap-2">
+                                    <input type="color" id="bg-color-custom" value="#f8fafc" class="w-9 h-9 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer bg-transparent p-0">
+                                    <span class="text-xs text-slate-400 flex-1">Color personalizado</span>
+                                    <button id="bg-color-reset" class="text-xs font-medium text-slate-400 hover:text-brand-500 transition-colors" title="Restablecer">Reset</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container (Sidebar + Content) -->
+    <div class="flex flex-1 overflow-hidden relative" style="height: calc(100vh - 56px)">
+        
+        <!-- Mobile Sidebar Overlay -->
+        <div id="mobile-overlay" class="hidden absolute inset-0 bg-slate-900/50 z-40 md:hidden backdrop-blur-sm"></div>
+
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar" class="absolute md:relative z-50 w-64 bg-white dark:bg-[#151b26] border-r border-slate-200 dark:border-slate-800 flex-shrink-0 hidden flex-col h-full overflow-y-auto -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
+            <div class="p-4">
+                <button onclick="app.navigate('home')" class="w-full flex items-center px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white mb-4">
+                    <i class="fa-solid fa-arrow-left mr-2"></i> Volver al Inicio
+                </button>
+                <div class="space-y-1">
+                    <p class="px-4 pb-1 text-xs font-bold text-slate-400 uppercase tracking-wider">Herramientas</p>
+                    <button onclick="app.navigate('calculator')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
+                        <i class="fa-solid fa-calculator w-6"></i> Calculadora
+                    </button>
+                    <button onclick="app.navigate('converter')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
+                        <i class="fa-solid fa-scale-balanced w-6"></i> Conversor
+                    </button>
+                    <button onclick="app.navigate('editor')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
+                        <i class="fa-solid fa-code w-6"></i> Editor HTML
+                    </button>
+                    <button onclick="app.navigate('pomodoro')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
+                        <i class="fa-solid fa-stopwatch w-6"></i> Pomodoro
+                    </button>
+                    <button onclick="app.navigate('textanalyzer')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
+                        <i class="fa-solid fa-chart-simple w-6"></i> Analizador Texto
+                    </button>
+                    <button onclick="app.navigate('spellchecker')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
+                        <i class="fa-solid fa-spell-check w-6"></i> Ortografía
+                    </button>
+                    <button onclick="app.navigate('markdown')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
+                        <i class="fa-brands fa-markdown w-6"></i> Editor Markdown
+                    </button>
+                    
+                    <div class="pt-4 pb-2">
+                        <p class="px-4 text-xs font-bold text-blue-500 uppercase tracking-wider"><i class="fa-solid fa-cloud mr-1"></i> Con Cuenta</p>
+                    </div>
+                    
+                    <button onclick="app.navigate('agenda')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
+                        <i class="fa-solid fa-calendar-days w-6 text-blue-500"></i> Agenda Personal
+                    </button>
+                    <button onclick="app.navigate('notebook')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
+                        <i class="fa-solid fa-book-journal-whills w-6 text-blue-500"></i> Libreta Apuntes
+                    </button>
+                    <button onclick="app.navigate('mindmap')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
+                        <i class="fa-solid fa-diagram-project w-6 text-blue-500"></i> Mapas Mentales
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 overflow-y-auto relative scroll-smooth p-3 md:p-8">
+            
+            <!-- HOME VIEW -->
+            <div id="view-home" class="view-section fade-in max-w-5xl mx-auto">
+                
+                <!-- Hero Section -->
+                <div class="text-center mt-6 md:mt-10 mb-8 md:mb-12 px-2">
+                    <span class="inline-block py-1 px-4 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-medium mb-4">
+                        ✨ Herramientas gratuitas para estudiantes
+                    </span>
+                    <h1 class="text-3xl sm:text-4xl md:text-6xl font-extrabold tracking-tight mb-4">
+                        Tu caja de herramientas<br/>
+                        <span class="text-brand-500">académicas</span> en un solo lugar
+                    </h1>
+                    <p class="text-base md:text-lg text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">
+                        Calculadoras, conversores, editores, mapas mentales y más. Todo en tu navegador.
+                    </p>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="max-w-3xl mx-auto mb-6 md:mb-10">
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-search text-slate-400"></i>
+                        </div>
+                        <input type="text" id="global-search" placeholder="Busca una herramienta: calculadora, conversor..." 
+                            class="block w-full pl-11 pr-4 py-3 md:py-4 text-base md:text-lg border-none rounded-2xl bg-white dark:bg-[#1a2233] text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-brand-500 shadow-sm transition-all">
+                    </div>
+                </div>
+
+                <!-- Ad Space Home -->
+                <div class="max-w-4xl mx-auto mb-6 md:mb-10 flex justify-center">
+                     <div class="w-full max-w-[728px] h-[60px] md:h-[90px] bg-white dark:bg-[#151b26] border border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-center text-sm text-slate-500 rounded-2xl">Espacio publicitario</div>
+                </div>
+
+                <!-- Category Filters -->
+                <div class="flex flex-wrap gap-2 mb-6" id="category-filters">
+                    <button class="filter-btn active px-4 py-1.5 rounded-full font-medium text-sm transition-colors bg-brand-500 text-white shadow-md shadow-brand-500/30" data-cat="all">Todas</button>
+                    <button class="filter-btn px-4 py-1.5 rounded-full font-medium text-sm transition-colors bg-white dark:bg-[#1a2233] text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800" data-cat="Matemáticas">Matemáticas</button>
+                    <button class="filter-btn px-4 py-1.5 rounded-full font-medium text-sm transition-colors bg-white dark:bg-[#1a2233] text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800" data-cat="Desarrollo">Desarrollo</button>
+                    <button class="filter-btn px-4 py-1.5 rounded-full font-medium text-sm transition-colors bg-white dark:bg-[#1a2233] text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800" data-cat="Estudio">Estudio</button>
+                </div>
+
+                <!-- Tools Grid -->
+                <div id="tools-grid">
+                    <!-- Populated by JS -->
+                </div>
+
+            </div>
+
+            <!-- CALCULATOR VIEW (Multi-Mode) -->
+            <div id="view-calculator" class="view-section hidden fade-in w-full max-w-3xl mx-auto h-full flex flex-col justify-center items-center py-4">
+                <div id="calc-panel" class="w-full bg-[#e8ebed] dark:bg-[#2c323c] rounded-lg shadow-2xl p-4 border border-slate-300 dark:border-slate-700 flex flex-col gap-3 relative select-none">
+                    
+                    <!-- Header & Input -->
+                    <div class="relative flex items-center bg-white dark:bg-[#1a2233] border border-slate-300 dark:border-slate-600 rounded p-1 shadow-inner min-h-[48px]">
+                        <input type="text" id="calc-display-main" class="w-full bg-transparent text-right text-2xl px-2 pb-1 pr-32 outline-none text-slate-800 dark:text-slate-100 font-mono" readonly>
+                        
+                        <!-- Dropdown Toggle -->
+                        <button id="calc-mode-toggle" class="absolute right-1 top-1 bottom-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 px-2 flex items-center text-sm font-medium bg-transparent">
+                             <span id="calc-current-mode-label">Científico</span> <i class="fa-solid fa-ellipsis-vertical ml-2 text-lg"></i>
+                        </button>
+                        
+                        <!-- Dropdown Menu -->
+                        <div id="calc-dropdown" class="hidden absolute top-full right-0 mt-1 w-56 bg-white dark:bg-[#1a2233] shadow-xl border border-slate-300 dark:border-slate-600 rounded-sm z-50 overflow-hidden text-sm">
+                            <div class="p-2 border-b border-slate-200 dark:border-slate-600 font-bold text-slate-500 text-xs tracking-wide">MODOS</div>
+                            <button class="calc-mode-btn w-full text-left px-4 py-2 hover:bg-[#337ab7] hover:text-white dark:hover:bg-[#337ab7]" data-mode="scientific">Científico</button>
+                            <button class="calc-mode-btn w-full text-left px-4 py-2 hover:bg-[#337ab7] hover:text-white dark:hover:bg-[#337ab7]" data-mode="programmer">Programador</button>
+                            <div class="p-2 border-y border-slate-200 dark:border-slate-600 font-bold text-slate-500 text-xs tracking-wide">AYUDANTES DE ENTRADA</div>
+                            <button class="calc-mode-btn w-full text-left px-4 py-2 hover:bg-[#337ab7] hover:text-white dark:hover:bg-[#337ab7]" data-mode="fractions">Fracciones</button>
+                            <button class="calc-mode-btn w-full text-left px-4 py-2 hover:bg-[#337ab7] hover:text-white dark:hover:bg-[#337ab7]" data-mode="equations">Ecuaciones</button>
+                            <button class="calc-mode-btn w-full text-left px-4 py-2 hover:bg-[#337ab7] hover:text-white dark:hover:bg-[#337ab7]" data-mode="vectors">Vectores / Matrices</button>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Sub-header Area (for equations, fractions, etc) -->
+                    <div id="calc-dynamic-header" class="hidden flex-col gap-2"></div>
+
+                    <!-- Keypad Area -->
+                    <div id="calc-keypad-area" class="w-full"></div>
+
+                    <!-- Bottom bar -->
+                    <div class="flex justify-between items-center mt-1 pt-2 border-t border-slate-300 dark:border-slate-600">
+                        <div class="flex items-center gap-3 text-[11px] font-medium text-slate-700 dark:text-slate-300">
+                            <label class="flex flex-col items-center cursor-pointer leading-tight"><input type="radio" name="calc-angle" value="deg" checked> <span class="flex items-center gap-1">Deg <span class="text-[9px] text-slate-400">360°</span></span></label>
+                            <label class="flex flex-col items-center cursor-pointer leading-tight"><input type="radio" name="calc-angle" value="rad"> <span class="flex items-center gap-1">Rad <span class="text-[9px] text-slate-400">2π</span></span></label>
+                        </div>
+                        <button class="px-3 py-1 bg-white dark:bg-[#1a2233] border border-slate-300 dark:border-slate-600 rounded text-sm hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm flex items-center gap-2">-- Historial -- <i class="fa-solid fa-chevron-down text-xs"></i></button>
+                        <div class="flex gap-2 text-slate-500">
+                            <button class="w-6 h-6 hover:text-slate-800 dark:hover:text-slate-200"><i class="fa-solid fa-arrow-down"></i></button>
+                            <button class="w-6 h-6 hover:text-slate-800 dark:hover:text-slate-200"><i class="fa-solid fa-arrow-up"></i></button>
+                            <button class="w-6 h-6 hover:text-slate-800 dark:hover:text-slate-200"><i class="fa-regular fa-hard-drive"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONVERTER VIEW -->
+            <div id="view-converter" class="view-section hidden fade-in max-w-4xl mx-auto w-full">
+                <div class="mb-6">
+                    <h2 class="text-3xl font-bold"><i class="fa-solid fa-scale-balanced text-brand-500 mr-2"></i> Conversor Universal</h2>
+                </div>
+                
+                <div class="bg-white dark:bg-[#1a2233] rounded-3xl shadow-lg border border-slate-200 dark:border-slate-800/50 overflow-hidden">
+                    <!-- Tabs -->
+                    <div class="flex flex-wrap border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#151b26]" id="conv-tabs"></div>
+                    
+                    <!-- Converter Body -->
+                    <div class="p-6 md:p-10 flex flex-col md:flex-row gap-6 items-center">
+                        <div class="flex-1 w-full relative">
+                            <input type="number" id="conv-input-1" class="w-full text-2xl p-5 pl-5 pr-28 rounded-2xl bg-slate-50 dark:bg-[#0f141e] border border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-brand-500 outline-none" value="1">
+                            <select id="conv-select-1" class="absolute right-2 top-2 bottom-2 bg-transparent border-l border-slate-200 dark:border-slate-700 pl-3 outline-none font-semibold"></select>
+                        </div>
+                        
+                        <div class="flex-shrink-0">
+                            <button id="conv-swap" class="w-14 h-14 rounded-full bg-brand-50 text-brand-500 dark:bg-brand-900/30 dark:text-brand-400 flex items-center justify-center hover:bg-brand-100 dark:hover:bg-brand-900/50 transition-colors shadow">
+                                <i class="fa-solid fa-right-left md:rotate-0 rotate-90 text-lg"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="flex-1 w-full relative">
+                            <input type="number" id="conv-input-2" class="w-full text-2xl p-5 pl-5 pr-28 rounded-2xl bg-slate-50 dark:bg-[#0f141e] border border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-brand-500 outline-none">
+                            <select id="conv-select-2" class="absolute right-2 top-2 bottom-2 bg-transparent border-l border-slate-200 dark:border-slate-700 pl-3 outline-none font-semibold"></select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- EDITOR VIEW -->
+            <div id="view-editor" class="view-section hidden fade-in h-full flex flex-col">
+                <div class="flex items-center justify-between mb-4 flex-shrink-0">
+                    <h2 class="text-3xl font-bold"><i class="fa-solid fa-code text-brand-500 mr-2"></i> Editor HTML</h2>
+                    <div class="flex gap-2">
+                        <button id="editor-copy" class="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 dark:bg-[#1a2233] dark:hover:bg-[#252f44] dark:border-slate-700 rounded-lg font-medium transition-colors flex items-center shadow-sm"><i class="fa-solid fa-copy mr-2"></i> Copiar</button>
+                        <button id="editor-download" class="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-lg font-medium transition-colors flex items-center shadow-md shadow-brand-500/20"><i class="fa-solid fa-download mr-2"></i> Descargar</button>
+                    </div>
+                </div>
+                
+                <div class="flex flex-wrap gap-2 mb-4 flex-shrink-0" id="editor-tags">
+                    <!-- Quick tags -->
+                    <button class="px-3 py-1 bg-white dark:bg-[#1a2233] border border-slate-200 dark:border-slate-800 rounded text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" data-tag="<h1>Título</h1>">&lt;h1&gt;</button>
+                    <button class="px-3 py-1 bg-white dark:bg-[#1a2233] border border-slate-200 dark:border-slate-800 rounded text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" data-tag="<p>Párrafo</p>">&lt;p&gt;</button>
+                    <button class="px-3 py-1 bg-white dark:bg-[#1a2233] border border-slate-200 dark:border-slate-800 rounded text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" data-tag="<a href='#'>Enlace</a>">&lt;a&gt;</button>
+                    <button class="px-3 py-1 bg-white dark:bg-[#1a2233] border border-slate-200 dark:border-slate-800 rounded text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" data-tag="<img src='https://via.placeholder.com/150' alt='img'>">&lt;img&gt;</button>
+                    <button class="px-3 py-1 bg-white dark:bg-[#1a2233] border border-slate-200 dark:border-slate-800 rounded text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" data-tag="<ul>\n  <li>Item 1</li>\n</ul>">&lt;ul&gt;</button>
+                    <button class="px-3 py-1 bg-white dark:bg-[#1a2233] border border-slate-200 dark:border-slate-800 rounded text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" data-tag="<table border='1'>\n  <tr><td>Celda</td></tr>\n</table>">&lt;table&gt;</button>
+                </div>
+
+                <div class="flex-1 flex flex-col lg:flex-row gap-4 min-h-0">
+                    <div class="flex-1 flex flex-col min-h-0 relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-inner">
+                        <div class="absolute top-0 right-0 bg-slate-200/80 dark:bg-slate-800/80 backdrop-blur px-3 py-1 text-xs font-bold rounded-bl-lg z-10 uppercase tracking-wider text-slate-600 dark:text-slate-400">HTML</div>
+                        <textarea id="editor-textarea" class="w-full h-full p-5 pt-8 font-mono text-sm bg-slate-900 text-slate-100 resize-none outline-none focus:ring-2 focus:ring-brand-500" spellcheck="false">&lt;div style="text-align: center; padding: 20px; font-family: sans-serif;"&gt;
+  &lt;h1 style="color: #ff6f59;"&gt;¡Hola Mundo!&lt;/h1&gt;
+  &lt;p&gt;Escribe HTML aquí y mira el resultado a la derecha.&lt;/p&gt;
+&lt;/div&gt;</textarea>
+                    </div>
+                    <div class="flex-1 flex flex-col min-h-0 relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm">
+                        <div class="absolute top-0 right-0 bg-slate-200/80 dark:bg-slate-800/80 backdrop-blur px-3 py-1 text-xs font-bold rounded-bl-lg z-10 uppercase tracking-wider text-slate-600 dark:text-slate-400">Vista Previa</div>
+                        <iframe id="editor-preview" class="w-full h-full bg-white"></iframe>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MARKDOWN VIEW -->
+            <div id="view-markdown" class="view-section hidden fade-in h-full flex flex-col">
+                <div class="flex items-center justify-between mb-4 flex-shrink-0">
+                    <h2 class="text-3xl font-bold"><i class="fa-brands fa-markdown text-brand-500 mr-2"></i> Editor Markdown</h2>
+                    <div class="flex gap-2">
+                        <button id="markdown-copy" class="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 dark:bg-[#1a2233] dark:hover:bg-[#252f44] dark:border-slate-700 rounded-lg font-medium transition-colors flex items-center shadow-sm"><i class="fa-solid fa-copy mr-2"></i> Copiar Vista</button>
+                        <button id="markdown-download" class="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-lg font-medium transition-colors flex items-center shadow-md shadow-brand-500/20"><i class="fa-solid fa-download mr-2"></i> Descargar .md</button>
+                    </div>
+                </div>
+                
+                <div class="flex-1 flex flex-col lg:flex-row gap-4 min-h-0">
+                    <div class="flex-1 flex flex-col min-h-0 relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-inner">
+                        <div class="absolute top-0 right-0 bg-slate-200/80 dark:bg-slate-800/80 backdrop-blur px-3 py-1 text-xs font-bold rounded-bl-lg z-10 uppercase tracking-wider text-slate-600 dark:text-slate-400">MARKDOWN</div>
+                        <textarea id="markdown-textarea" class="w-full h-full p-5 pt-8 font-mono text-sm bg-slate-900 text-slate-100 resize-none outline-none focus:ring-2 focus:ring-brand-500" spellcheck="false"># Hola Mundo
+
+Escribe aquí usando **Markdown**.
+
+- Lista 1
+- Lista 2
+
+> Una cita.
+</textarea>
+                    </div>
+                    <div class="flex-1 flex flex-col min-h-0 relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-[#0f141e] p-5 pt-8 overflow-y-auto">
+                        <div class="absolute top-0 right-0 bg-slate-200/80 dark:bg-slate-800/80 backdrop-blur px-3 py-1 text-xs font-bold rounded-bl-lg z-10 uppercase tracking-wider text-slate-600 dark:text-slate-400">Vista Previa</div>
+                        <div id="markdown-preview" class="prose dark:prose-invert max-w-none text-slate-800 dark:text-slate-200"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MINDMAP VIEW -->
+            <div id="view-mindmap" class="view-section hidden fade-in h-full flex flex-col relative">
+                <!-- Top bar -->
+                <div class="flex items-center justify-between mb-4 flex-shrink-0">
+                    <div class="flex items-center gap-3">
+                        <h2 class="text-2xl font-bold"><i class="fa-solid fa-diagram-project text-brand-500 mr-2"></i> Mapas Mentales</h2>
+                        <span id="mm-current-name" class="text-slate-400 font-medium text-sm"></span>
+                    </div>
+                    <div class="flex gap-2" id="mm-canvas-actions">
+                        <button id="mm-add-root" class="px-3 py-2 bg-white hover:bg-slate-50 border border-slate-200 dark:bg-[#1a2233] dark:hover:bg-[#252f44] dark:border-slate-700 rounded-lg text-sm font-medium transition-colors shadow-sm"><i class="fa-solid fa-plus mr-1"></i> Nodo Raíz</button>
+                        <input type="file" id="mm-import-input" accept=".json" class="hidden">
+                        <button id="mm-import" class="px-3 py-2 bg-white hover:bg-slate-50 border border-slate-200 dark:bg-[#1a2233] dark:hover:bg-[#252f44] dark:border-slate-700 rounded-lg text-sm font-medium transition-colors shadow-sm"><i class="fa-solid fa-file-import mr-1"></i> Importar</button>
+                        <button id="mm-export-json" class="px-3 py-2 bg-brand-50 text-brand-600 border border-brand-200 hover:bg-brand-100 dark:bg-brand-900/20 dark:text-brand-400 dark:border-brand-900/50 dark:hover:bg-brand-900/40 rounded-lg text-sm font-medium transition-colors"><i class="fa-solid fa-file-export mr-1"></i> Exportar</button>
+                        <button id="mm-save-cloud" onclick="window.MindMap.saveToCloud()" class="px-3 py-2 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-900/50 dark:hover:bg-blue-900/40 rounded-lg text-sm font-medium transition-colors"><i class="fa-solid fa-cloud-arrow-up mr-1"></i> Guardar</button>
+                        <button id="mm-clear" class="px-3 py-2 bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900/50 dark:hover:bg-red-900/40 rounded-lg text-sm font-medium transition-colors"><i class="fa-solid fa-trash-can mr-1"></i> Limpiar</button>
+                    </div>
+                </div>
+
+                <!-- Zoom hint (desktop only) -->
+                <p class="hidden md:block text-[11px] text-slate-400 -mt-2 mb-2">Rueda del ratón: zoom · Arrastra el fondo: mover el lienzo</p>
+
+                <!-- Two-pane layout -->
+                <div class="flex flex-1 gap-4 overflow-hidden min-h-0">
+
+                    <!-- Left panel: Maps list -->
+                    <div class="w-56 flex-shrink-0 bg-white dark:bg-[#151b26] border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col overflow-hidden shadow-sm">
+                        <div class="p-3 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Mis mapas</span>
+                            <button onclick="window.MindMap.addMap()" class="w-7 h-7 rounded-lg bg-brand-500 text-white flex items-center justify-center hover:bg-brand-600 transition-colors shadow-sm shadow-brand-500/30" title="Nuevo mapa">
+                                <i class="fa-solid fa-plus text-xs"></i>
+                            </button>
+                        </div>
+                        <div id="mm-maps-list" class="flex-1 overflow-y-auto p-2 space-y-1">
+                            <div class="text-center text-slate-400 text-xs mt-6 px-2">Crea tu primer mapa con el botón +</div>
+                        </div>
+                    </div>
+
+                    <!-- Right panel: Canvas -->
+                    <div class="flex-1 flex flex-col min-w-0">
+                        <!-- Empty state -->
+                        <div id="mm-empty-state" class="flex-1 flex flex-col items-center justify-center text-slate-400 gap-3 bg-slate-100/50 dark:bg-[#111827] rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800">
+                            <i class="fa-solid fa-diagram-project text-5xl opacity-20"></i>
+                            <p class="font-medium text-sm">Selecciona o crea un mapa</p>
+                        </div>
+                        <!-- Canvas -->
+                        <div id="mm-canvas-wrapper" class="flex-1 flex-col hidden" style="min-height:0">
+
+                            <div id="mindmap-container" class="w-full h-full bg-slate-100/50 dark:bg-[#111827] rounded-2xl border border-slate-200 dark:border-slate-800 relative overflow-hidden shadow-inner cursor-crosshair">
+                                <svg id="mindmap-svg" class="w-full h-full absolute inset-0 pointer-events-none z-10"></svg>
+                                <div id="mindmap-nodes" class="absolute inset-0 z-20"></div>
+
+                                <!-- Zoom controls -->
+                                <div class="absolute bottom-3 right-3 z-40 flex items-center gap-1 bg-white/90 dark:bg-[#1a2233]/90 backdrop-blur border border-slate-200 dark:border-slate-700 rounded-xl shadow-md p-1">
+                                    <button id="mm-zoom-out" title="Alejar" class="w-8 h-8 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300"><i class="fa-solid fa-minus text-xs"></i></button>
+                                    <span id="mm-zoom-level" class="text-xs font-semibold w-11 text-center text-slate-600 dark:text-slate-300 select-none">100%</span>
+                                    <button id="mm-zoom-in" title="Acercar" class="w-8 h-8 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300"><i class="fa-solid fa-plus text-xs"></i></button>
+                                    <div class="w-px h-5 bg-slate-200 dark:bg-slate-700 mx-0.5"></div>
+                                    <button id="mm-zoom-reset" title="Encajar en pantalla" class="w-8 h-8 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300"><i class="fa-solid fa-compress text-xs"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Floating Mini Menu -->
+                <div id="mm-toolbar" class="hidden absolute z-50 bg-white dark:bg-[#1f2937] border border-slate-200 dark:border-slate-700 shadow-xl rounded-xl p-2 flex flex-col gap-2 transition-opacity duration-200 w-[200px]">
+                    <div class="flex justify-between items-center w-full">
+                        <div class="flex gap-1">
+                            <button class="w-8 h-8 rounded hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-300" onmousedown="event.preventDefault(); document.execCommand('bold', false, null)" title="Negrita"><i class="fa-solid fa-bold"></i></button>
+                            <button class="w-8 h-8 rounded hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-300" onmousedown="event.preventDefault(); document.execCommand('italic', false, null)" title="Cursiva"><i class="fa-solid fa-italic"></i></button>
+                            <button class="w-8 h-8 rounded hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-300" onmousedown="event.preventDefault(); document.execCommand('underline', false, null)" title="Subrayado"><i class="fa-solid fa-underline"></i></button>
+                        </div>
+                        <div class="flex gap-1">
+                            <button id="mm-tool-add" class="w-8 h-8 rounded bg-brand-50 hover:bg-brand-100 text-brand-600 dark:bg-brand-900/30 dark:hover:bg-brand-900/50 dark:text-brand-400 flex items-center justify-center" title="Añadir Hijo"><i class="fa-solid fa-plus"></i></button>
+                            <button id="mm-tool-del" class="w-8 h-8 rounded hover:bg-red-50 text-red-600 dark:hover:bg-red-900/30 dark:text-red-400 flex items-center justify-center" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                    <div class="w-full h-px bg-slate-200 dark:bg-slate-700"></div>
+                    <div class="flex flex-col gap-2 w-full mt-1">
+                        <div class="flex justify-between items-center w-full">
+                            <span class="text-xs text-slate-500 font-medium">Fondo:</span>
+                            <div class="relative w-7 h-7 rounded border border-slate-300 dark:border-slate-600 overflow-hidden shadow-sm">
+                                <input type="color" id="mm-color-bg" value="#ffffff" class="absolute -top-2 -left-2 w-12 h-12 cursor-pointer">
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center w-full">
+                            <span class="text-xs text-slate-500 font-medium">Texto:</span>
+                            <div class="relative w-7 h-7 rounded border border-slate-300 dark:border-slate-600 overflow-hidden shadow-sm">
+                                <input type="color" id="mm-color-text" value="#1e293b" class="absolute -top-2 -left-2 w-12 h-12 cursor-pointer">
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center w-full">
+                            <span class="text-xs text-slate-500 font-medium">Tamaño:</span>
+                            <div class="flex gap-1 border border-slate-200 dark:border-slate-700 rounded-md overflow-hidden bg-slate-50 dark:bg-[#151b26]">
+                                <button id="mm-size-down" class="w-7 h-7 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"><i class="fa-solid fa-minus text-[10px]"></i></button>
+                                <button id="mm-size-up" class="w-7 h-7 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"><i class="fa-solid fa-plus text-[10px]"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+              <!-- POMODORO VIEW -->
+
+            <div id="view-pomodoro" class="view-section hidden fade-in max-w-2xl mx-auto w-full">
+                <div class="mb-6">
+                    <h2 class="text-3xl font-bold"><i class="fa-solid fa-stopwatch text-brand-500 mr-2"></i> Temporizador Pomodoro</h2>
+                </div>
+                <div class="bg-white dark:bg-[#1a2233] p-8 rounded-3xl shadow-lg border border-slate-200 dark:border-slate-800/50 flex flex-col items-center">
+                    <p class="text-slate-500 dark:text-slate-400 mb-8 text-xl" id="pomo-status-text">Estudio</p>
+                    
+                    <!-- Circular Timer Display -->
+                    <div class="relative w-64 h-64 flex items-center justify-center mb-8">
+                        <svg class="absolute inset-0 w-full h-full transform -rotate-90 drop-shadow-md" viewBox="0 0 256 256">
+                            <circle cx="128" cy="128" r="120" stroke="currentColor" stroke-width="8" fill="transparent" class="text-slate-100 dark:text-slate-800" />
+                            <circle id="pomo-progress" cx="128" cy="128" r="120" stroke="currentColor" stroke-width="8" stroke-linecap="round" fill="transparent" stroke-dasharray="753.98" stroke-dashoffset="0" class="text-brand-500 transition-all duration-1000 linear" />
+                        </svg>
+                        <div class="text-6xl font-extrabold font-mono tracking-tighter" id="pomo-time">25:00</div>
+                    </div>
+                    
+                    <div class="flex gap-4 mb-8">
+                        <button id="pomo-start" class="w-16 h-16 rounded-full bg-brand-500 text-white hover:bg-brand-600 flex items-center justify-center text-xl shadow-lg shadow-brand-500/40 transition-transform hover:scale-105"><i class="fa-solid fa-play"></i></button>
+                        <button id="pomo-pause" class="w-16 h-16 rounded-full bg-amber-500 text-white hover:bg-amber-600 flex items-center justify-center text-xl shadow-lg shadow-amber-500/40 transition-transform hover:scale-105 hidden"><i class="fa-solid fa-pause"></i></button>
+                        <button id="pomo-reset" class="w-16 h-16 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 flex items-center justify-center text-xl shadow transition-transform hover:scale-105"><i class="fa-solid fa-rotate-right"></i></button>
+                    </div>
+                    
+                    <div class="w-full space-y-4 px-4 max-w-sm">
+                        <div class="flex items-center justify-between bg-slate-50 dark:bg-[#0f141e] p-3 rounded-xl border border-slate-200 dark:border-slate-800">
+                            <span class="font-medium text-slate-600 dark:text-slate-400">Estudio (min)</span>
+                            <input type="number" id="pomo-work-val" min="1" max="120" value="25" class="w-20 bg-white dark:bg-[#1a2233] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-1 font-bold text-center outline-none focus:ring-2 focus:ring-brand-500">
+                        </div>
+                        <div class="flex items-center justify-between bg-slate-50 dark:bg-[#0f141e] p-3 rounded-xl border border-slate-200 dark:border-slate-800">
+                            <span class="font-medium text-slate-600 dark:text-slate-400">Descanso (min)</span>
+                            <input type="number" id="pomo-break-val" min="1" max="60" value="5" class="w-20 bg-white dark:bg-[#1a2233] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-1 font-bold text-center outline-none focus:ring-2 focus:ring-brand-500">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TEXT ANALYZER VIEW -->
+            <div id="view-textanalyzer" class="view-section hidden fade-in max-w-4xl mx-auto w-full">
+                <div class="mb-6">
+                    <h2 class="text-3xl font-bold"><i class="fa-solid fa-chart-simple text-brand-500 mr-2"></i> Analizador de Textos</h2>
+                </div>
+                <div class="bg-white dark:bg-[#1a2233] p-6 rounded-3xl shadow-lg border border-slate-200 dark:border-slate-800/50 flex flex-col">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold">Análisis en Tiempo Real</h3>
+                        <button id="text-copy" class="px-3 py-1.5 text-sm font-medium bg-slate-100 hover:bg-slate-200 dark:bg-[#252f44] dark:hover:bg-slate-700 rounded-lg transition-colors"><i class="fa-regular fa-copy mr-1"></i> Copiar</button>
+                    </div>
+                    
+                    <textarea id="text-input" class="w-full flex-1 min-h-[300px] p-4 rounded-2xl bg-slate-50 dark:bg-[#0f141e] border border-slate-200 dark:border-slate-800 resize-none outline-none focus:ring-2 focus:ring-brand-500 mb-4 text-lg" placeholder="Pega tu texto aquí para analizarlo..."></textarea>
+                    
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+                        <div class="bg-slate-50 dark:bg-[#0f141e] border border-slate-100 dark:border-slate-800 p-3 rounded-xl text-center">
+                            <div class="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-1">Palabras</div>
+                            <div class="text-2xl font-extrabold text-brand-500" id="text-words">0</div>
+                        </div>
+                        <div class="bg-slate-50 dark:bg-[#0f141e] border border-slate-100 dark:border-slate-800 p-3 rounded-xl text-center">
+                            <div class="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-1">Caracteres</div>
+                            <div class="text-2xl font-extrabold text-slate-700 dark:text-slate-200" id="text-chars">0</div>
+                        </div>
+                        <div class="bg-slate-50 dark:bg-[#0f141e] border border-slate-100 dark:border-slate-800 p-3 rounded-xl text-center">
+                            <div class="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-1">Párrafos</div>
+                            <div class="text-2xl font-extrabold text-slate-700 dark:text-slate-200" id="text-paras">0</div>
+                        </div>
+                        <div class="bg-slate-50 dark:bg-[#0f141e] border border-slate-100 dark:border-slate-800 p-3 rounded-xl text-center">
+                            <div class="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-1">Lectura</div>
+                            <div class="text-2xl font-extrabold text-slate-700 dark:text-slate-200" id="text-time">0m</div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Palabras más repetidas</h4>
+                        <div id="text-keywords" class="flex flex-wrap gap-2">
+                            <span class="text-sm text-slate-400 italic">Escribe algo...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SPELL CHECKER VIEW -->
+            <div id="view-spellchecker" class="view-section hidden fade-in max-w-4xl mx-auto w-full relative">
+                <div class="mb-6 flex items-center justify-between">
+                    <h2 class="text-3xl font-bold"><i class="fa-solid fa-spell-check text-brand-500 mr-2"></i> Corrector Ortográfico</h2>
+                    
+                    <div class="flex items-center gap-3">
+                        <select id="spell-lang" class="bg-white dark:bg-[#1a2233] border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-sm rounded-lg focus:ring-brand-500 focus:border-brand-500 block p-2.5 outline-none font-medium">
+                            <option value="es">Castellano</option>
+                            <option value="ca">Catalán</option>
+                            <option value="en-US">Inglés</option>
+                        </select>
+                        <button id="spell-check-btn" class="bg-brand-500 hover:bg-brand-600 text-white font-medium py-2 px-5 rounded-lg shadow-md transition-colors flex items-center gap-2">
+                            <i class="fa-solid fa-magnifying-glass"></i> Revisar
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="bg-white dark:bg-[#1a2233] p-1 rounded-3xl shadow-lg border border-slate-200 dark:border-slate-800/50 relative">
+                    <!-- The rich text editor where errors are highlighted -->
+                    <div id="spell-editor" class="w-full min-h-[400px] p-5 bg-slate-50 dark:bg-[#0f141e] rounded-2xl outline-none focus:ring-2 focus:ring-brand-500 text-lg whitespace-pre-wrap overflow-y-auto" contenteditable="true" spellcheck="false" placeholder="Escribe o pega el texto a corregir aquí..."></div>
+                </div>
+
+                <!-- Floating Suggestion Menu -->
+                <div id="spell-menu" class="hidden absolute z-50 bg-white dark:bg-[#252f44] border border-slate-200 dark:border-slate-700 shadow-2xl rounded-xl p-2 w-64">
+                    <div class="text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide px-2" id="spell-menu-title">Sugerencias</div>
+                    <div id="spell-suggestions" class="flex flex-col gap-1 max-h-48 overflow-y-auto">
+                        <!-- Suggestions injected here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- AGENDA VIEW -->
+            <div id="view-agenda" class="view-section hidden fade-in max-w-6xl mx-auto w-full h-full flex flex-col relative">
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-4 flex-shrink-0">
+                    <h2 class="text-2xl md:text-3xl font-bold"><i class="fa-solid fa-calendar-days text-brand-500 mr-2"></i> Agenda Personal</h2>
+                    <div class="flex items-center gap-3">
+                        <div id="agenda-view-toggle" class="flex items-center bg-slate-100 dark:bg-[#1a2233] rounded-lg p-1 text-sm font-medium">
+                            <button id="agenda-view-month" class="px-3 py-1.5 rounded-md transition-colors">Mes</button>
+                            <button id="agenda-view-week" class="px-3 py-1.5 rounded-md transition-colors">Semana</button>
+                        </div>
+                        <button id="agenda-add-btn" class="bg-brand-500 hover:bg-brand-600 text-white font-medium py-2 px-4 rounded-lg shadow-md transition-colors text-sm"><i class="fa-solid fa-plus mr-1"></i> Nuevo Evento</button>
+                    </div>
+                </div>
+                <!-- Agenda Container -->
+                <div class="flex-1 bg-white dark:bg-[#1a2233] rounded-3xl shadow-lg border border-slate-200 dark:border-slate-800/50 flex flex-col md:flex-row overflow-hidden">
+                    <!-- Calendar -->
+                    <div id="agenda-calendar-col" class="md:w-1/3 border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-700/50 flex flex-col p-4 md:p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <button id="cal-prev" class="p-2 rounded hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><i class="fa-solid fa-chevron-left"></i></button>
+                            <h3 id="cal-month" class="text-base font-bold capitalize">Mes Año</h3>
+                            <button id="cal-next" class="p-2 rounded hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><i class="fa-solid fa-chevron-right"></i></button>
+                        </div>
+                        <div class="grid grid-cols-7 gap-1 text-center text-xs font-bold text-slate-500 mb-2">
+                            <div>L</div><div>M</div><div>X</div><div>J</div><div>V</div><div>S</div><div>D</div>
+                        </div>
+                        <div id="cal-days" class="grid grid-cols-7 gap-1 text-sm">
+                            <!-- Days injected here -->
+                        </div>
+                    </div>
+                    <!-- Events -->
+                    <div class="flex-1 flex flex-col p-4 md:p-6 bg-slate-50 dark:bg-[#0f141e] min-h-0">
+                        <h3 id="agenda-selected-date" class="text-lg font-bold mb-4 text-brand-600 dark:text-brand-400">Eventos del Día</h3>
+                        <div id="agenda-events-list" class="flex-1 overflow-y-auto space-y-3">
+                            <div class="flex items-center justify-center h-full text-slate-400 text-sm">Selecciona un día en el calendario</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NOTEBOOK VIEW -->
+            <div id="view-notebook" class="view-section hidden fade-in max-w-7xl mx-auto w-full h-full flex flex-col relative">
+                <div class="flex items-center justify-between mb-4 flex-shrink-0">
+                    <h2 class="text-2xl md:text-3xl font-bold"><i class="fa-solid fa-book-journal-whills text-brand-500 mr-2"></i> Libreta de Apuntes</h2>
+                </div>
+                
+                <div class="flex-1 bg-white dark:bg-[#1a2233] rounded-3xl shadow-lg border border-slate-200 dark:border-slate-800/50 flex flex-col md:flex-row overflow-hidden">
+                    <!-- Column 1: Subjects -->
+                    <div class="md:w-52 border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-700/50 flex flex-col bg-slate-50 dark:bg-[#151b26]">
+                        <div class="p-4 border-b border-slate-200 dark:border-slate-700/50 flex justify-between items-center">
+                            <h3 class="font-bold text-sm uppercase text-slate-500 tracking-wider">Asignaturas</h3>
+                            <button id="nb-add-subject" class="text-brand-500 hover:text-brand-600"><i class="fa-solid fa-circle-plus text-lg"></i></button>
+                        </div>
+                        <div id="nb-subjects-list" class="flex-1 overflow-y-auto p-2 space-y-1">
+                            <!-- Subjects injected here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Column 2: Topics -->
+                    <div class="md:w-56 border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-700/50 flex flex-col bg-slate-100 dark:bg-[#0f141e]">
+                        <div class="p-4 border-b border-slate-200 dark:border-slate-700/50 flex justify-between items-center">
+                            <h3 id="nb-current-subject" class="font-bold text-sm text-slate-700 dark:text-slate-300 truncate">Selecciona Asignatura</h3>
+                            <button id="nb-add-topic" class="text-brand-500 hover:text-brand-600 hidden"><i class="fa-solid fa-plus"></i> Tema</button>
+                        </div>
+                        <div id="nb-topics-list" class="flex-1 overflow-y-auto p-2 space-y-1">
+                            <div class="text-center text-slate-400 text-xs mt-10">Selecciona una asignatura primero</div>
+                        </div>
+                    </div>
+
+
+                    <!-- Column 3: Rich Text Editor -->
+                    <div class="flex-1 flex flex-col relative">
+                        <!-- Toolbar -->
+                        <div id="nb-toolbar" class="p-3 border-b border-slate-200 dark:border-slate-700/50 bg-white dark:bg-[#1a2233] flex gap-2 items-center flex-wrap opacity-50 pointer-events-none transition-opacity">
+                            <button class="w-8 h-8 rounded hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-300" onmousedown="event.preventDefault(); document.execCommand('bold', false, null)" title="Negrita"><i class="fa-solid fa-bold"></i></button>
+                            <button class="w-8 h-8 rounded hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-300" onmousedown="event.preventDefault(); document.execCommand('italic', false, null)" title="Cursiva"><i class="fa-solid fa-italic"></i></button>
+                            <button class="w-8 h-8 rounded hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-300" onmousedown="event.preventDefault(); document.execCommand('underline', false, null)" title="Subrayado"><i class="fa-solid fa-underline"></i></button>
+                            <div class="w-px h-6 bg-slate-300 dark:bg-slate-700 mx-1"></div>
+                            
+                            <!-- Insert Image -->
+                            <label class="w-8 h-8 rounded hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-300 cursor-pointer" title="Insertar Imagen">
+                                <i class="fa-solid fa-image"></i>
+                                <input type="file" id="nb-insert-image" accept="image/*" class="hidden">
+                            </label>
+
+                            <!-- Link to MindMap -->
+                            <button id="nb-link-mindmap" class="px-2 h-8 rounded hover:bg-brand-50 text-brand-600 dark:hover:bg-brand-900/30 dark:text-brand-400 flex items-center justify-center text-sm font-medium transition-colors" title="Enlazar palabra a Mapa Mental">
+                                <i class="fa-solid fa-link mr-1"></i> Mapa Mental
+                            </button>
+                            
+                            <div class="flex-1"></div>
+                            <span id="nb-save-status" class="text-xs text-slate-400 font-medium mr-2">Guardado automático</span>
+                        </div>
+                        
+                        <!-- Editor Content -->
+                        <div id="nb-editor" class="flex-1 p-8 outline-none overflow-y-auto text-lg text-slate-800 dark:text-slate-200 leading-relaxed" contenteditable="true" spellcheck="false" data-placeholder="Selecciona o crea un tema para empezar a escribir..."></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LOGIN OVERLAY (Shows over Restricted Tools) -->
+            <div id="login-overlay" class="hidden absolute inset-0 z-50 bg-white/80 dark:bg-[#0f141e]/90 backdrop-blur-sm flex items-center justify-center">
+                <div class="bg-white dark:bg-[#1f2937] p-10 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-700 max-w-md text-center">
+                    <div class="w-20 h-20 bg-brand-100 dark:bg-brand-900/30 text-brand-500 rounded-2xl flex items-center justify-center text-4xl mx-auto mb-6 shadow-inner">
+                        <i class="fa-solid fa-lock"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold mb-3">Acceso Restringido</h2>
+                    <p class="text-slate-500 dark:text-slate-400 mb-8 leading-relaxed">Esta herramienta guarda datos personales cifrados en la nube. Inicia sesión con tu cuenta de Google para acceder a tu información.</p>
+                    <button id="btn-login-overlay" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 px-6 rounded-xl shadow-lg transition-transform hover:-translate-y-1 flex items-center justify-center gap-3 text-lg">
+                        <i class="fa-brands fa-google text-xl"></i> Continuar con Google
+                    </button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-medium px-5 py-3 rounded-xl shadow-xl transform transition-all duration-300 translate-y-20 opacity-0 z-50 flex items-center border border-slate-700 dark:border-slate-200">
+        <i class="fa-solid fa-circle-check text-green-400 dark:text-green-600 mr-3 text-lg"></i>
+        <span id="toast-msg">Mensaje</span>
+    </div>
+
+    <!-- Generic Modal Container -->
+    <div id="custom-modal" class="fixed inset-0 z-[60] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-white dark:bg-[#151b26] w-full max-w-md rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 transform scale-95 transition-transform duration-300 flex flex-col overflow-hidden" id="custom-modal-content">
+            <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                <h3 id="custom-modal-title" class="text-lg font-bold text-slate-800 dark:text-slate-200">Título</h3>
+                <button id="custom-modal-close" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <p id="custom-modal-desc" class="text-sm text-slate-600 dark:text-slate-400 mb-4 hidden">Descripción</p>
+                <div id="custom-modal-body" class="space-y-4">
+                    <!-- Inputs injected here -->
+                </div>
+            </div>
+            <div class="px-6 py-4 bg-slate-50 dark:bg-[#0f141e] border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
+                <button id="custom-modal-cancel" class="px-4 py-2 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">Cancelar</button>
+                <button id="custom-modal-confirm" class="px-4 py-2 rounded-lg text-sm font-bold bg-brand-500 text-white hover:bg-brand-600 shadow-md shadow-brand-500/30 transition-all">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Pomodoro Widget (persiste entre vistas) -->
+    <div id="pomo-floating" class="hidden fixed z-[55] select-none" style="right: 20px; bottom: 20px;">
+        <!-- Expanded card -->
+        <div id="pomo-floating-expanded" class="bg-white dark:bg-[#151b26] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-3 flex items-center gap-3 w-[220px]">
+            <div id="pomo-floating-handle" class="cursor-grab active:cursor-grabbing flex items-center justify-center text-slate-300 dark:text-slate-600 hover:text-slate-400 px-1" title="Arrastrar">
+                <i class="fa-solid fa-grip-vertical"></i>
+            </div>
+            <div class="relative w-12 h-12 flex-shrink-0">
+                <svg viewBox="0 0 60 60" class="w-12 h-12 -rotate-90">
+                    <circle cx="30" cy="30" r="26" fill="none" stroke-width="4" class="stroke-slate-100 dark:stroke-slate-800"></circle>
+                    <circle id="pomo-floating-ring" cx="30" cy="30" r="26" fill="none" stroke-width="4" stroke-linecap="round" class="stroke-brand-500 transition-all duration-1000 linear"></circle>
+                </svg>
+                <div class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-slate-500 dark:text-slate-400" id="pomo-floating-status-dot">
+                    <i class="fa-solid fa-stopwatch"></i>
+                </div>
+            </div>
+            <div class="flex-1 min-w-0">
+                <div id="pomo-floating-time" class="font-mono font-bold text-lg text-slate-800 dark:text-slate-100 leading-tight">25:00</div>
+                <div id="pomo-floating-status" class="text-[11px] text-slate-400 font-medium">Estudio</div>
+            </div>
+            <div class="flex flex-col gap-1">
+                <button id="pomo-floating-playpause" class="w-7 h-7 rounded-lg bg-brand-500 text-white flex items-center justify-center hover:bg-brand-600 transition-colors text-xs" title="Pausar/Reanudar"><i class="fa-solid fa-pause"></i></button>
+                <button id="pomo-floating-toggle" class="w-7 h-7 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-xs" title="Minimizar"><i class="fa-solid fa-minus"></i></button>
+            </div>
+            <button id="pomo-floating-close" class="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:bg-red-500 hover:text-white flex items-center justify-center text-[10px] shadow" title="Ocultar">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Collapsed bubble -->
+        <div id="pomo-floating-collapsed" class="hidden cursor-grab active:cursor-grabbing w-16 h-16 rounded-full bg-white dark:bg-[#151b26] border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col items-center justify-center gap-0.5">
+            <i class="fa-solid fa-stopwatch text-brand-500 text-sm"></i>
+            <span id="pomo-floating-mini-time" class="font-mono font-bold text-[11px] text-slate-700 dark:text-slate-200">25:00</span>
+        </div>
+    </div>
+
+    <!-- App Logic (Module for Firebase) -->
+    <script type="module" src="app.js"></script>
+</body>
+</html>
