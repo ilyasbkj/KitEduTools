@@ -44,7 +44,12 @@
     <!-- Marked.js -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <!-- Pyodide -->
+    <!-- (Pyodide se cargará desde el Web Worker, pero dejamos la etiqueta por compatibilidad si es necesario, aunque lo ideal es quitarla) -->
     <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
+    <!-- Xterm.js -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
     <!-- Custom CSS -->
     <link rel="stylesheet" href="styles.css">
     <style>
@@ -418,19 +423,10 @@ Escribe aquí usando **Markdown**.
                         <textarea id="py-textarea" class="w-full h-full p-5 pt-8 font-mono text-sm bg-slate-900 text-slate-100 resize-none outline-none focus:ring-2 focus:ring-brand-500" spellcheck="false"># Escribe tu código Python aquí
 print("Hola Mundo desde el navegador!")</textarea>
                     </div>
-                    <!-- I/O Panel -->
-                    <div class="flex-1 flex flex-col min-h-0 gap-4 relative">
-                        <!-- Standard Input -->
-                        <div class="flex-1 flex flex-col min-h-0 relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm bg-[#0d1117] p-5 pt-8">
-                            <div class="absolute top-0 right-0 bg-slate-800/80 backdrop-blur px-3 py-1 text-xs font-bold rounded-bl-lg z-10 uppercase tracking-wider text-slate-300">ENTRADA ESTÁNDAR (STDIN)</div>
-                            <textarea id="py-stdin-textarea" class="w-full h-full font-mono text-sm text-slate-300 bg-transparent resize-none outline-none" spellcheck="false" placeholder="Si usas input(), escribe aquí cada respuesta en una línea nueva antes de Ejecutar."></textarea>
-                        </div>
-                        
-                        <!-- Terminal Panel -->
-                        <div class="flex-[2] flex flex-col min-h-0 relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm bg-black p-5 pt-8 overflow-y-auto">
-                            <div class="absolute top-0 right-0 bg-slate-800/80 backdrop-blur px-3 py-1 text-xs font-bold rounded-bl-lg z-10 uppercase tracking-wider text-green-400">TERMINAL</div>
-                            <pre id="py-output" class="font-mono text-sm text-green-400 whitespace-pre-wrap"></pre>
-                        </div>
+                    <!-- Terminal Panel (xterm.js) -->
+                    <div class="flex-1 flex flex-col min-h-0 relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm bg-[#0d1117] p-2 pt-8">
+                        <div class="absolute top-0 right-0 bg-slate-800/80 backdrop-blur px-3 py-1 text-xs font-bold rounded-bl-lg z-10 uppercase tracking-wider text-green-400">TERMINAL</div>
+                        <div id="py-xterm-container" class="w-full h-full"></div>
                     </div>
                 </div>
             </div>
