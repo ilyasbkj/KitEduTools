@@ -81,12 +81,17 @@
                 </div>
                 <!-- Theme & Profile -->
                 <div class="flex items-center gap-2">
+                    <select id="lang-select" class="text-xs text-slate-500 bg-transparent outline-none font-medium p-1 cursor-pointer hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200">
+                        <option value="es">ES</option>
+                        <option value="en">EN</option>
+                        <option value="ca">CA</option>
+                    </select>
                     <button id="theme-toggle" class="p-2 rounded-full text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                         <i class="fa-solid fa-sun text-lg" id="theme-icon"></i>
                     </button>
                     <div id="user-profile-container" class="relative flex items-center ml-1 border-l border-slate-200 dark:border-slate-700 pl-3">
                         <button id="btn-login" class="bg-brand-500 hover:bg-brand-600 text-white font-medium py-1.5 px-3 rounded-lg shadow-sm transition-colors text-sm flex items-center gap-1.5">
-                            <i class="fa-brands fa-google text-xs"></i> <span class="hidden xs:inline">Conectar</span><span class="xs:hidden">G</span>
+                            <i class="fa-brands fa-google text-xs"></i> <span class="hidden xs:inline" data-i18n="btn_connect">Conectar</span><span class="xs:hidden">G</span>
                         </button>
                         <div id="user-info" class="hidden items-center gap-2 relative">
                             <button id="btn-theme-color" class="text-slate-400 hover:text-brand-500 transition-colors p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800" title="Personalizar colores">
@@ -141,44 +146,44 @@
         <aside id="sidebar" class="absolute md:relative z-50 w-64 bg-white dark:bg-[#151b26] border-r border-slate-200 dark:border-slate-800 flex-shrink-0 hidden flex-col h-full overflow-y-auto -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
             <div class="p-4">
                 <button onclick="app.navigate('home')" class="w-full flex items-center px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white mb-4">
-                    <i class="fa-solid fa-arrow-left mr-2"></i> Volver al Inicio
+                    <i class="fa-solid fa-arrow-left mr-2"></i> <span data-i18n="nav_back_home">Volver al Inicio</span>
                 </button>
                 <div class="space-y-1">
-                    <p class="px-4 pb-1 text-xs font-bold text-slate-400 uppercase tracking-wider">Herramientas</p>
+                    <p class="px-4 pb-1 text-xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="nav_tools">Herramientas</p>
                     <button onclick="app.navigate('calculator')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
-                        <i class="fa-solid fa-calculator w-6"></i> Calculadora
+                        <i class="fa-solid fa-calculator w-6"></i> <span data-i18n="nav_calculator">Calculadora</span>
                     </button>
                     <button onclick="app.navigate('converter')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
-                        <i class="fa-solid fa-scale-balanced w-6"></i> Conversor
+                        <i class="fa-solid fa-scale-balanced w-6"></i> <span data-i18n="nav_converter">Conversor</span>
                     </button>
                     <button onclick="app.navigate('editor')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
-                        <i class="fa-solid fa-code w-6"></i> Editor HTML
+                        <i class="fa-solid fa-code w-6"></i> <span data-i18n="nav_editor">Editor HTML</span>
                     </button>
                     <button onclick="app.navigate('pomodoro')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
-                        <i class="fa-solid fa-stopwatch w-6"></i> Pomodoro
+                        <i class="fa-solid fa-stopwatch w-6"></i> <span data-i18n="nav_pomodoro">Pomodoro</span>
                     </button>
                     <button onclick="app.navigate('textanalyzer')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
-                        <i class="fa-solid fa-chart-simple w-6"></i> Analizador Texto
+                        <i class="fa-solid fa-chart-simple w-6"></i> <span data-i18n="nav_textanalyzer">Analizador Texto</span>
                     </button>
                     <button onclick="app.navigate('spellchecker')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
-                        <i class="fa-solid fa-spell-check w-6"></i> Ortografía
+                        <i class="fa-solid fa-spell-check w-6"></i> <span data-i18n="nav_spellchecker">Ortografía</span>
                     </button>
                     <button onclick="app.navigate('markdown')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
-                        <i class="fa-brands fa-markdown w-6"></i> Editor Markdown
+                        <i class="fa-brands fa-markdown w-6"></i> <span data-i18n="nav_markdown">Editor Markdown</span>
                     </button>
                     
                     <div class="pt-4 pb-2">
-                        <p class="px-4 text-xs font-bold text-blue-500 uppercase tracking-wider"><i class="fa-solid fa-cloud mr-1"></i> Con Cuenta</p>
+                        <p class="px-4 text-xs font-bold text-blue-500 uppercase tracking-wider"><i class="fa-solid fa-cloud mr-1"></i> <span data-i18n="nav_with_account">Con Cuenta</span></p>
                     </div>
                     
                     <button onclick="app.navigate('agenda')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
-                        <i class="fa-solid fa-calendar-days w-6 text-blue-500"></i> Agenda Personal
+                        <i class="fa-solid fa-calendar-days w-6 text-blue-500"></i> <span data-i18n="nav_agenda">Agenda Personal</span>
                     </button>
                     <button onclick="app.navigate('notebook')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
-                        <i class="fa-solid fa-book-journal-whills w-6 text-blue-500"></i> Libreta Apuntes
+                        <i class="fa-solid fa-book-journal-whills w-6 text-blue-500"></i> <span data-i18n="nav_notebook">Libreta Apuntes</span>
                     </button>
                     <button onclick="app.navigate('mindmap')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
-                        <i class="fa-solid fa-diagram-project w-6 text-blue-500"></i> Mapas Mentales
+                        <i class="fa-solid fa-diagram-project w-6 text-blue-500"></i> <span data-i18n="nav_mindmap">Mapas Mentales</span>
                     </button>
                 </div>
             </div>
@@ -193,14 +198,14 @@
                 <!-- Hero Section -->
                 <div class="text-center mt-6 md:mt-10 mb-8 md:mb-12 px-2">
                     <span class="inline-block py-1 px-4 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-medium mb-4">
-                        ✨ Herramientas gratuitas para estudiantes
+                        <span data-i18n="home_badge">✨ Herramientas gratuitas para estudiantes</span>
                     </span>
                     <h1 class="text-3xl sm:text-4xl md:text-6xl font-extrabold tracking-tight mb-4">
-                        Tu caja de herramientas<br/>
-                        <span class="text-brand-500">académicas</span> en un solo lugar
+                        <span data-i18n="home_title_1">Tu caja de herramientas</span><br/>
+                        <span class="text-brand-500" data-i18n="home_title_2">académicas</span> <span data-i18n="home_title_3">en un solo lugar</span>
                     </h1>
                     <p class="text-base md:text-lg text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">
-                        Calculadoras, conversores, editores, mapas mentales y más. Todo en tu navegador.
+                        <span data-i18n="home_subtitle">Calculadoras, conversores, editores, mapas mentales y más. Todo en tu navegador.</span>
                     </p>
                 </div>
 
@@ -210,7 +215,7 @@
                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                             <i class="fa-solid fa-search text-slate-400"></i>
                         </div>
-                        <input type="text" id="global-search" placeholder="Busca una herramienta: calculadora, conversor..." 
+                        <input type="text" id="global-search" data-i18n-placeholder="home_search" placeholder="Busca una herramienta: calculadora, conversor..." 
                             class="block w-full pl-11 pr-4 py-3 md:py-4 text-base md:text-lg border-none rounded-2xl bg-white dark:bg-[#1a2233] text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-brand-500 shadow-sm transition-all">
                     </div>
                 </div>
@@ -222,10 +227,10 @@
 
                 <!-- Category Filters -->
                 <div class="flex flex-wrap gap-2 mb-6" id="category-filters">
-                    <button class="filter-btn active px-4 py-1.5 rounded-full font-medium text-sm transition-colors bg-brand-500 text-white shadow-md shadow-brand-500/30" data-cat="all">Todas</button>
-                    <button class="filter-btn px-4 py-1.5 rounded-full font-medium text-sm transition-colors bg-white dark:bg-[#1a2233] text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800" data-cat="Matemáticas">Matemáticas</button>
-                    <button class="filter-btn px-4 py-1.5 rounded-full font-medium text-sm transition-colors bg-white dark:bg-[#1a2233] text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800" data-cat="Desarrollo">Desarrollo</button>
-                    <button class="filter-btn px-4 py-1.5 rounded-full font-medium text-sm transition-colors bg-white dark:bg-[#1a2233] text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800" data-cat="Estudio">Estudio</button>
+                    <button class="filter-btn active px-4 py-1.5 rounded-full font-medium text-sm transition-colors bg-brand-500 text-white shadow-md shadow-brand-500/30" data-cat="all" data-i18n="cat_all">Todas</button>
+                    <button class="filter-btn px-4 py-1.5 rounded-full font-medium text-sm transition-colors bg-white dark:bg-[#1a2233] text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800" data-cat="cat_math" data-i18n="cat_math">Matemáticas</button>
+                    <button class="filter-btn px-4 py-1.5 rounded-full font-medium text-sm transition-colors bg-white dark:bg-[#1a2233] text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800" data-cat="cat_dev" data-i18n="cat_dev">Desarrollo</button>
+                    <button class="filter-btn px-4 py-1.5 rounded-full font-medium text-sm transition-colors bg-white dark:bg-[#1a2233] text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800" data-cat="cat_study" data-i18n="cat_study">Estudio</button>
                 </div>
 
                 <!-- Tools Grid -->

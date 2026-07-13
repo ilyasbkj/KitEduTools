@@ -3,6 +3,7 @@ import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signO
 import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, where, orderBy, onSnapshot, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { MarkdownEditor } from './js/modules/markdown.js';
 import { Calculator } from './js/modules/calculator.js';
+import { I18n } from './js/modules/i18n.js';
 
 // TODO: Configuración Firebase (Reemplazar con tus credenciales)
 const firebaseConfig = {
@@ -31,16 +32,16 @@ const app = {
     currentView: 'home',
     currentCategory: 'all',
     tools: [
-        { id: 'calculator', name: 'Calculadora Avanzada', cat: 'Matemáticas', icon: 'fa-calculator', color: 'text-brand-500', bg: 'bg-brand-50 dark:bg-brand-900/20', desc: 'Calculadora con modos Científico, Programador, Ecuaciones, Fracciones y Matrices.' },
-        { id: 'converter', name: 'Conversor Universal', cat: 'Matemáticas', icon: 'fa-scale-balanced', color: 'text-brand-500', bg: 'bg-brand-50 dark:bg-brand-900/20', desc: 'Convierte unidades físicas y sistemas matemáticos al instante.' },
-        { id: 'editor', name: 'Editor HTML en Vivo', cat: 'Desarrollo', icon: 'fa-code', color: 'text-brand-500', bg: 'bg-brand-50 dark:bg-brand-900/20', desc: 'Escribe código HTML y visualiza el resultado en tiempo real.' },
-        { id: 'pomodoro', name: 'Temporizador Pomodoro', cat: 'Estudio', icon: 'fa-stopwatch', color: 'text-brand-500', bg: 'bg-brand-50 dark:bg-brand-900/20', desc: 'Gestiona tu tiempo de estudio con intervalos personalizables.' },
-        { id: 'textanalyzer', name: 'Analizador de Textos', cat: 'Estudio', icon: 'fa-chart-simple', color: 'text-brand-500', bg: 'bg-brand-50 dark:bg-brand-900/20', desc: 'Análisis detallado de palabras, caracteres y tiempo de lectura.' },
-        { id: 'spellchecker', name: 'Corrector Ortográfico', cat: 'Estudio', icon: 'fa-spell-check', color: 'text-brand-500', bg: 'bg-brand-50 dark:bg-brand-900/20', desc: 'Corrector avanzado multilingüe para textos impecables.' },
-        { id: 'markdown', name: 'Editor Markdown', cat: 'Desarrollo', icon: 'fa-file-pen', color: 'text-brand-500', bg: 'bg-brand-50 dark:bg-brand-900/20', desc: 'Escribe y previsualiza archivos Markdown en tiempo real.' },
-        { id: 'agenda', name: 'Agenda Personal', cat: 'Estudio', icon: 'fa-calendar-days', color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20', desc: 'Gestiona tus eventos diarios con almacenamiento seguro en la nube. ☁️', badge: 'Cuenta' },
-        { id: 'notebook', name: 'Libreta de Apuntes', cat: 'Estudio', icon: 'fa-book-journal-whills', color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20', desc: 'Guarda tus apuntes por asignatura, incluye imágenes y enlaces. ☁️', badge: 'Cuenta' },
-        { id: 'mindmap', name: 'Mapas Mentales', cat: 'Estudio', icon: 'fa-diagram-project', color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20', desc: 'Crea y guarda esquemas interactivos en tu cuenta. ☁️', badge: 'Cuenta' },
+        { id: 'calculator', nameKey: 'nav_calculator', catKey: 'cat_math', icon: 'fa-calculator', color: 'text-brand-500', bg: 'bg-brand-50 dark:bg-brand-900/20', descKey: 'tool_calc_desc' },
+        { id: 'converter', nameKey: 'nav_converter', catKey: 'cat_math', icon: 'fa-scale-balanced', color: 'text-brand-500', bg: 'bg-brand-50 dark:bg-brand-900/20', descKey: 'tool_conv_desc' },
+        { id: 'editor', nameKey: 'nav_editor', catKey: 'cat_dev', icon: 'fa-code', color: 'text-brand-500', bg: 'bg-brand-50 dark:bg-brand-900/20', descKey: 'tool_edit_desc' },
+        { id: 'pomodoro', nameKey: 'nav_pomodoro', catKey: 'cat_study', icon: 'fa-stopwatch', color: 'text-brand-500', bg: 'bg-brand-50 dark:bg-brand-900/20', descKey: 'tool_pomo_desc' },
+        { id: 'textanalyzer', nameKey: 'nav_textanalyzer', catKey: 'cat_study', icon: 'fa-chart-simple', color: 'text-brand-500', bg: 'bg-brand-50 dark:bg-brand-900/20', descKey: 'tool_text_desc' },
+        { id: 'spellchecker', nameKey: 'nav_spellchecker', catKey: 'cat_study', icon: 'fa-spell-check', color: 'text-brand-500', bg: 'bg-brand-50 dark:bg-brand-900/20', descKey: 'tool_spell_desc' },
+        { id: 'markdown', nameKey: 'nav_markdown', catKey: 'cat_dev', icon: 'fa-file-pen', color: 'text-brand-500', bg: 'bg-brand-50 dark:bg-brand-900/20', descKey: 'tool_mark_desc' },
+        { id: 'agenda', nameKey: 'nav_agenda', catKey: 'cat_study', icon: 'fa-calendar-days', color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20', descKey: 'tool_agen_desc', badgeKey: 'badge_account' },
+        { id: 'notebook', nameKey: 'nav_notebook', catKey: 'cat_study', icon: 'fa-book-journal-whills', color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20', descKey: 'tool_note_desc', badgeKey: 'badge_account' },
+        { id: 'mindmap', nameKey: 'nav_mindmap', catKey: 'cat_study', icon: 'fa-diagram-project', color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20', descKey: 'tool_mind_desc', badgeKey: 'badge_account' },
     ],
 
     init() {
@@ -49,6 +50,7 @@ const app = {
         this.renderHomeCards();
         this.initSearch();
         
+        I18n.init();
         Calculator.init();
         Converter.init();
         HtmlEditor.init();
@@ -64,6 +66,9 @@ const app = {
         Notebook.init();
         this.initMobileMenu();
         this.initRouting();
+        document.addEventListener('languageChanged', () => {
+            this.renderHomeCards(document.getElementById('global-search').value);
+        });
 
         const startView = (location.hash || '').replace('#', '');
         const validStart = startView && document.getElementById(`view-${startView}`) ? startView : 'home';
@@ -202,15 +207,29 @@ const app = {
         const grid = document.getElementById('tools-grid');
         grid.innerHTML = '';
         
-        const filteredTools = this.tools.filter(tool => {
+        let filteredTools = this.tools.map(tool => ({
+            ...tool,
+            name: I18n.get(tool.nameKey),
+            cat: I18n.get(tool.catKey),
+            desc: I18n.get(tool.descKey),
+            badge: tool.badgeKey ? I18n.get(tool.badgeKey) : null
+        })).filter(tool => {
             const matchSearch = tool.name.toLowerCase().includes(searchFilter.toLowerCase()) || 
                                 tool.desc.toLowerCase().includes(searchFilter.toLowerCase());
-            const matchCat = this.currentCategory === 'all' || tool.cat === this.currentCategory;
+            // matchCat uses the actual key comparison to avoid translation mismatch
+            const matchCat = this.currentCategory === 'all' || I18n.get(tool.catKey) === this.currentCategory || tool.catKey === this.currentCategory;
             return matchSearch && matchCat;
         });
 
+        // SORT BY CATEGORY THEN BY NAME
+        filteredTools.sort((a, b) => {
+            if (a.cat < b.cat) return -1;
+            if (a.cat > b.cat) return 1;
+            return a.name.localeCompare(b.name);
+        });
+
         if (filteredTools.length === 0) {
-            grid.innerHTML = `<p class="col-span-full text-center text-slate-500 py-10">No se encontraron herramientas.</p>`;
+            grid.innerHTML = `<p class="col-span-full text-center text-slate-500 py-10" data-i18n="no_tools_found">${I18n.get('no_tools_found')}</p>`;
             return;
         }
 
@@ -235,7 +254,6 @@ const app = {
             `;
             grid.appendChild(card);
         });
-
     },
 
     initSearch() {
