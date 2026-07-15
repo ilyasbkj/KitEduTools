@@ -1,8 +1,14 @@
 export const PythonIDE = {
     editor: null,
     term: null,
+    worker: null,
     pyodideReady: false,
-    pyodide: null,
+    sharedBuffer: null,
+    int32Array: null,
+    uint8Array: null,
+    
+    inputResolve: null,
+    inputBuffer: '',
 
     init() {
         if (!document.getElementById('python-editor')) return;
@@ -10,7 +16,7 @@ export const PythonIDE = {
         this.initEditor();
         this.initTerminal();
         this.bindEvents();
-        this.loadPyodide();
+        this.initWorker();
     },
 
     initEditor() {
@@ -30,21 +36,20 @@ export const PythonIDE = {
 def saludar(nombre):
     return f"¡Hola, {nombre}!"
 
-print(saludar("Mundo"))
+m = input("Escribe tu nombre: ")
+print(saludar(m))
 
 # Ejemplo de bucle
-for i in range(1, 6):
+for i in range(1, 4):
     print(f"Contador: {i}")
 `;
         this.editor.setValue(initialCode, -1);
         
-        // Theme update listener
         document.addEventListener('themeChanged', () => {
             const isDark = document.documentElement.classList.contains('dark');
             this.editor.setTheme(isDark ? "ace/theme/tomorrow_night_eighties" : "ace/theme/textmate");
         });
         
-        // initial theme
         if (document.documentElement.classList.contains('dark')) {
             this.editor.setTheme("ace/theme/tomorrow_night_eighties");
         }
@@ -70,7 +75,6 @@ for i in range(1, 6):
             fitAddon.fit();
         });
         
-        // Hack for fitting when becoming visible
         const observer = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
                 if (mutation.target.id === 'view-python' && !mutation.target.classList.contains('hidden')) {
@@ -80,28 +84,114 @@ for i in range(1, 6):
         });
         observer.observe(document.getElementById('view-python'), { attributes: true, attributeFilter: ['class'] });
 
-        this.term.writeln('\x1b[33mPreparando entorno Python...\x1b[0m');
+        // Terminal keystroke handling for Python input()
+        this.term.onData(e => {
+            if (!this.inputResolve) return; // Ignore if not waiting for input
+            
+            switch (e) {
+                case '\r': // Enter
+                    this.term.writeln('');
+                    this.inputResolve(this.inputBuffer);
+                    this.inputBuffer = '';
+                    this.inputResolve = null;
+                    break;
+                case '\x7f': // Backspace
+                    if (this.inputBuffer.length > 0) {
+                        this.inputBuffer = this.inputBuffer.slice(0, -1);
+                        this.term.write('\b \b');
+                    }
+                    break;
+                default:
+                    if (e >= String.fromCharCode(0x20) && e <= String.fromCharCode(0x7E)) {
+                        this.inputBuffer += e;
+                        this.term.write(e);
+                    }
+            }
+        });
+
+        this.term.writeln('\x1b[33mIniciando Worker de Python...\x1b[0m');
     },
 
-    async loadPyodide() {
-        try {
-            this.pyodide = await loadPyodide({
-                stdout: (text) => this.term.writeln(text),
-                stderr: (text) => this.term.writeln(`\x1b[31m${text}\x1b[0m`),
-                stdin: () => prompt()
-            });
-            this.term.writeln('\x1b[32mEntorno Python listo. Pyodide ' + this.pyodide.version + '\x1b[0m');
-            this.pyodideReady = true;
-            this.updateRunButtonState(false);
-            
-            // Set basic configuration
-            this.pyodide.runPython(`
-import sys
-import io
-`);
-        } catch (err) {
-            this.term.writeln(`\x1b[31mError al cargar Python: ${err}\x1b[0m`);
-            console.error(err);
+    initWorker() {
+        if (!window.SharedArrayBuffer) {
+            this.term.writeln('\x1b[31mError: SharedArrayBuffer no soportado.\x1b[0m');
+            this.term.writeln('\x1b[31mEl servidor debe usar Cross-Origin-Opener-Policy: same-origin y Cross-Origin-Embedder-Policy: credentialless\x1b[0m');
+            return;
+        }
+
+        this.sharedBuffer = new SharedArrayBuffer(1024);
+        this.int32Array = new Int32Array(this.sharedBuffer);
+        this.uint8Array = new Uint8Array(this.sharedBuffer);
+
+        this.worker = new Worker('js/modules/python_worker.js');
+        this.worker.onmessage = (e) => this.handleWorkerMessage(e);
+        this.worker.onerror = (e) => {
+            this.term.writeln(`\x1b[31mError en Worker: ${e.message}\x1b[0m`);
+            console.error(e);
+        };
+
+        this.worker.postMessage({
+            type: 'init',
+            sharedBuffer: this.sharedBuffer
+        });
+    },
+
+    handleWorkerMessage(e) {
+        const msg = e.data;
+        switch (msg.type) {
+            case 'ready':
+                this.term.writeln('\x1b[32mEntorno Python listo (Worker). Pyodide ' + msg.version + '\x1b[0m');
+                this.pyodideReady = true;
+                this.updateRunButtonState(false);
+                break;
+            case 'stdout':
+                this.term.writeln(msg.text);
+                break;
+            case 'stderr':
+                this.term.writeln(`\x1b[31m${msg.text}\x1b[0m`);
+                break;
+            case 'request_input':
+                // Do not write prompt here, Python prints the input() prompt via stdout right before requesting input.
+                // We just start capturing keys.
+                new Promise(resolve => {
+                    this.inputResolve = resolve;
+                }).then(inputText => {
+                    // Encode the input text
+                    const encoder = new TextEncoder();
+                    const bytes = encoder.encode(inputText + '\n');
+                    
+                    // Write to SharedArrayBuffer
+                    this.uint8Array.set(bytes, 8);
+                    this.int32Array[1] = bytes.length;
+                    
+                    // Notify the worker that data is ready
+                    this.int32Array[0] = 1;
+                    Atomics.notify(this.int32Array, 0, 1);
+                });
+                break;
+            case 'run_finished':
+                this.term.writeln('\x1b[36m--- Ejecución terminada ---\x1b[0m');
+                this.term.scrollToBottom();
+                this.updateRunButtonState(false);
+                break;
+            case 'run_error':
+                this.term.writeln(`\x1b[31m${msg.error}\x1b[0m`);
+                this.term.writeln('\x1b[36m--- Ejecución terminada con error ---\x1b[0m');
+                this.term.scrollToBottom();
+                this.updateRunButtonState(false);
+                break;
+            case 'install_finished':
+                this.term.writeln(`\x1b[32mPaquete ${msg.pkg} instalado correctamente.\x1b[0m`);
+                document.getElementById('py-pkg-input').value = '';
+                this.updateRunButtonState(false);
+                break;
+            case 'install_error':
+                this.term.writeln(`\x1b[31mError al instalar ${msg.pkg}: ${msg.error}\x1b[0m`);
+                this.updateRunButtonState(false);
+                break;
+            case 'error':
+                this.term.writeln(`\x1b[31mError de inicialización: ${msg.error}\x1b[0m`);
+                break;
         }
     },
 
@@ -129,26 +219,23 @@ import io
         }
     },
 
-    async runCode() {
+    runCode() {
         if (!this.pyodideReady) return;
         
+        // Interrupt previous input if any
+        if (this.inputResolve) {
+            this.inputResolve('');
+            this.inputResolve = null;
+        }
+
         const code = this.editor.getValue();
         this.updateRunButtonState(true);
         this.term.writeln('\x1b[36m>>> Ejecutando código...\x1b[0m');
         
-        try {
-            await this.pyodide.loadPackagesFromImports(code);
-            await this.pyodide.runPythonAsync(code);
-        } catch (err) {
-            this.term.writeln(`\x1b[31m${err}\x1b[0m`);
-        } finally {
-            this.updateRunButtonState(false);
-            this.term.writeln('\x1b[36m--- Ejecución terminada ---\x1b[0m');
-            this.term.scrollToBottom();
-        }
+        this.worker.postMessage({ type: 'run', code: code });
     },
     
-    async installPackage() {
+    installPackage() {
         if (!this.pyodideReady) return;
         
         const input = document.getElementById('py-pkg-input');
@@ -158,16 +245,6 @@ import io
         this.updateRunButtonState(true);
         this.term.writeln(`\x1b[33mInstalando ${pkg}...\x1b[0m`);
         
-        try {
-            await this.pyodide.loadPackage("micropip");
-            const micropip = this.pyodide.pyimport("micropip");
-            await micropip.install(pkg);
-            this.term.writeln(`\x1b[32mPaquete ${pkg} instalado correctamente.\x1b[0m`);
-            input.value = '';
-        } catch (err) {
-            this.term.writeln(`\x1b[31mError al instalar ${pkg}: ${err}\x1b[0m`);
-        } finally {
-            this.updateRunButtonState(false);
-        }
+        this.worker.postMessage({ type: 'install', pkg: pkg });
     }
 };
