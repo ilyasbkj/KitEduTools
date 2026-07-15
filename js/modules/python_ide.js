@@ -87,7 +87,8 @@ for i in range(1, 6):
         try {
             this.pyodide = await loadPyodide({
                 stdout: (text) => this.term.writeln(text),
-                stderr: (text) => this.term.writeln(`\x1b[31m${text}\x1b[0m`)
+                stderr: (text) => this.term.writeln(`\x1b[31m${text}\x1b[0m`),
+                stdin: () => prompt()
             });
             this.term.writeln('\x1b[32mEntorno Python listo. Pyodide ' + this.pyodide.version + '\x1b[0m');
             this.pyodideReady = true;
