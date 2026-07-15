@@ -5,6 +5,7 @@ import { MarkdownEditor } from './js/modules/markdown.js';
 import { Calculator } from './js/modules/calculator.js';
 import { I18n } from './js/modules/i18n.js';
 import { Guides } from './js/modules/guides.js';
+import { PythonIDE } from './js/modules/python_ide.js';
 
 // TODO: Configuración Firebase (Reemplazar con tus credenciales)
 const firebaseConfig = {
@@ -40,6 +41,7 @@ const app = {
         { id: 'textanalyzer', nameKey: 'nav_textanalyzer', catKey: 'cat_study', icon: 'fa-chart-simple', color: 'text-brand-500', bg: 'bg-brand-50 dark:bg-brand-900/20', descKey: 'tool_text_desc' },
         { id: 'spellchecker', nameKey: 'nav_spellchecker', catKey: 'cat_study', icon: 'fa-spell-check', color: 'text-brand-500', bg: 'bg-brand-50 dark:bg-brand-900/20', descKey: 'tool_spell_desc' },
         { id: 'markdown', nameKey: 'nav_markdown', catKey: 'cat_dev', icon: 'fa-file-pen', color: 'text-brand-500', bg: 'bg-brand-50 dark:bg-brand-900/20', descKey: 'tool_mark_desc' },
+        { id: 'python', nameKey: 'nav_python', catKey: 'cat_dev', icon: 'fa-brands fa-python', color: 'text-yellow-500', bg: 'bg-yellow-50 dark:bg-yellow-900/20', descKey: 'tool_py_desc' },
         { id: 'guides', nameKey: 'nav_guides', catKey: 'cat_dev', icon: 'fa-book', color: 'text-brand-500', bg: 'bg-brand-50 dark:bg-brand-900/20', descKey: 'tool_gui_desc' },
         { id: 'agenda', nameKey: 'nav_agenda', catKey: 'cat_study', icon: 'fa-calendar-days', color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20', descKey: 'tool_agen_desc', badgeKey: 'badge_account' },
         { id: 'notebook', nameKey: 'nav_notebook', catKey: 'cat_study', icon: 'fa-book-journal-whills', color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20', descKey: 'tool_note_desc', badgeKey: 'badge_account' },
@@ -61,6 +63,7 @@ const app = {
         TextAnalyzer.init();
         SpellChecker.init();
         MarkdownEditor.init();
+        PythonIDE.init();
         Guides.init();
         ModalManager.init();
         AuthManager.init();

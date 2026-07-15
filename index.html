@@ -86,6 +86,8 @@
     <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
     <!-- Ace Editor -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.7/ace.js"></script>
+    <!-- Pyodide -->
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
     <!-- Custom CSS -->
     <link rel="stylesheet" href="styles.css">
     <style>
@@ -204,6 +206,9 @@
                     </button>
                     <button onclick="app.navigate('markdown')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
                         <i class="fa-brands fa-markdown w-6"></i> <span data-i18n="nav_markdown">Editor Markdown</span>
+                    </button>
+                    <button onclick="app.navigate('python')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
+                        <i class="fa-brands fa-python w-6"></i> <span data-i18n="nav_python">Python IDE</span>
                     </button>
                     <button onclick="app.navigate('guides')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
                         <i class="fa-solid fa-book w-6"></i> <span data-i18n="nav_guides">Centro de Guías</span>
@@ -416,6 +421,35 @@ Escribe aquí usando **Markdown**.
             </div>
 
 
+
+            <!-- PYTHON IDE VIEW -->
+            <div id="view-python" class="view-section hidden fade-in h-full flex flex-col">
+                <div class="flex items-center justify-between mb-4 flex-shrink-0">
+                    <h2 class="text-3xl font-bold"><i class="fa-brands fa-python text-brand-500 mr-2"></i> <span data-i18n="nav_python">Python IDE</span></h2>
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="py-pkg-input" class="px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-[#1a2233] focus:outline-none focus:border-brand-500" data-i18n-placeholder="py_pkg_ph" placeholder="Librería (ej: numpy)">
+                        <button id="btn-py-install" class="bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 font-medium py-1.5 px-3 rounded-lg transition-colors text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-download"></i> Instalar
+                        </button>
+                        <button id="btn-py-clear" class="bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 font-medium py-1.5 px-3 rounded-lg transition-colors text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-eraser"></i> Limpiar
+                        </button>
+                        <button id="btn-py-run" class="bg-brand-500 hover:bg-brand-600 text-white font-medium py-1.5 px-4 rounded-lg shadow-sm transition-colors text-sm flex items-center gap-2" disabled>
+                            <i class="fa-solid fa-spinner fa-spin" id="py-run-icon"></i> <span id="py-run-text">Cargando...</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="flex-1 flex flex-col lg:flex-row gap-4 min-h-0">
+                    <!-- Editor -->
+                    <div class="w-full lg:w-1/2 bg-white dark:bg-[#1a2233] border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm flex flex-col relative">
+                        <div id="python-editor" class="flex-1 w-full min-h-[300px]"></div>
+                    </div>
+                    <!-- Terminal -->
+                    <div class="w-full lg:w-1/2 bg-[#1e1e1e] border border-slate-200 dark:border-slate-800 rounded-2xl p-2 shadow-sm flex flex-col overflow-hidden relative">
+                        <div id="python-terminal" class="flex-1 w-full h-full min-h-[300px]"></div>
+                    </div>
+                </div>
+            </div>
 
             <!-- GUIDES VIEW -->
             <div id="view-guides" class="view-section hidden fade-in h-full flex flex-col relative">
