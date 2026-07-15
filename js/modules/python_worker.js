@@ -7,6 +7,11 @@ let uint8Array;
 
 async function initPyodide(sab) {
     sharedBuffer = sab;
+    
+    if (!(sharedBuffer instanceof SharedArrayBuffer)) {
+        postMessage({ type: 'stderr', text: '\x1b[31m[Worker] Advertencia: Tu navegador bloqueó la memoria compartida (SharedArrayBuffer). Esto suele pasar en Safari o servidores sin cabeceras COOP/COEP correctas. La función input() no funcionará.\x1b[0m' });
+    }
+    
     int32Array = new Int32Array(sharedBuffer);
     uint8Array = new Uint8Array(sharedBuffer);
 
@@ -15,21 +20,23 @@ async function initPyodide(sab) {
             stdout: (text) => postMessage({ type: 'stdout', text }),
             stderr: (text) => postMessage({ type: 'stderr', text }),
             stdin: () => {
-                // Request input from main thread
-                postMessage({ type: 'request_input' });
-                
-                // Block until main thread sets int32Array[0] to 1
-                Atomics.wait(int32Array, 0, 0);
-                
-                // Read length
-                const length = int32Array[1];
-                const bytes = new Uint8Array(sharedBuffer, 8, length);
-                const decoder = new TextDecoder();
-                const str = decoder.decode(bytes);
-                
-                // Reset flag
-                int32Array[0] = 0;
-                return str;
+                try {
+                    postMessage({ type: 'request_input' });
+                    
+                    Atomics.wait(int32Array, 0, 0);
+                    
+                    const length = int32Array[1];
+                    const bytes = new Uint8Array(sharedBuffer, 8, length);
+                    const decoder = new TextDecoder();
+                    const str = decoder.decode(bytes);
+                    
+                    int32Array[0] = 0;
+                    return str;
+                } catch (err) {
+                    postMessage({ type: 'stderr', text: '\x1b[31m[Worker] Error JS en stdin: ' + err.message + '\x1b[0m' });
+                    // Provide a dummy EOF to prevent Pyodide from crashing completely
+                    return null;
+                }
             }
         });
         
