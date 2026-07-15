@@ -35,6 +35,43 @@
             }
         }
     </script>
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4056952798195040"
+     crossorigin="anonymous"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KitEduTools</title>
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: 'rgb(var(--brand-50) / <alpha-value>)',
+                            100: 'rgb(var(--brand-100) / <alpha-value>)',
+                            200: 'rgb(var(--brand-200) / <alpha-value>)',
+                            300: 'rgb(var(--brand-300) / <alpha-value>)',
+                            400: 'rgb(var(--brand-400) / <alpha-value>)',
+                            500: 'rgb(var(--brand-500) / <alpha-value>)',
+                            600: 'rgb(var(--brand-600) / <alpha-value>)',
+                            900: 'rgb(var(--brand-900) / <alpha-value>)',
+                        },
+                        darkbg: '#111827', /* gray-900 */
+                        darkcard: '#1f2937', /* gray-800 */
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
@@ -43,9 +80,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
     <!-- Marked.js -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <!-- Pyodide -->
-    <!-- (Pyodide se cargará desde el Web Worker, pero dejamos la etiqueta por compatibilidad si es necesario, aunque lo ideal es quitarla) -->
-    <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
     <!-- Xterm.js -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
     <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
@@ -168,29 +202,12 @@
                     <button onclick="app.navigate('editor')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
                         <i class="fa-solid fa-code w-6"></i> <span data-i18n="nav_editor">Editor HTML</span>
                     </button>
-                    <button onclick="app.navigate('pomodoro')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
-                        <i class="fa-solid fa-stopwatch w-6"></i> <span data-i18n="nav_pomodoro">Pomodoro</span>
-                    </button>
-                    <button onclick="app.navigate('textanalyzer')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
-                        <i class="fa-solid fa-chart-simple w-6"></i> <span data-i18n="nav_textanalyzer">Analizador Texto</span>
-                    </button>
-                    <button onclick="app.navigate('spellchecker')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
-                        <i class="fa-solid fa-spell-check w-6"></i> <span data-i18n="nav_spellchecker">Ortografía</span>
-                    </button>
-                    <button onclick="app.navigate('python')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
-                        <i class="fa-brands fa-python w-6"></i> <span data-i18n="nav_python">Python IDE</span>
+                    <button onclick="app.navigate('markdown')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
+                        <i class="fa-brands fa-markdown w-6"></i> <span data-i18n="nav_markdown">Editor Markdown</span>
                     </button>
                     <button onclick="app.navigate('guides')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
                         <i class="fa-solid fa-book w-6"></i> <span data-i18n="nav_guides">Centro de Guías</span>
                     </button>
-                    <button onclick="app.navigate('markdown')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
-                        <i class="fa-brands fa-markdown w-6"></i> <span data-i18n="nav_markdown">Editor Markdown</span>
-                    </button>
-                    
-                    <div class="pt-4 pb-2">
-                        <p class="px-4 text-xs font-bold text-blue-500 uppercase tracking-wider"><i class="fa-solid fa-cloud mr-1"></i> <span data-i18n="nav_with_account">Con Cuenta</span></p>
-                    </div>
-                    
                     <button onclick="app.navigate('agenda')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
                         <i class="fa-solid fa-calendar-days w-6 text-blue-500"></i> <span data-i18n="nav_agenda">Agenda Personal</span>
                     </button>
@@ -398,40 +415,7 @@ Escribe aquí usando **Markdown**.
                 </div>
             </div>
 
-            <!-- PYTHON IDE VIEW -->
-            <div id="view-python" class="view-section hidden fade-in h-full flex flex-col">
-                <div class="flex items-center justify-between mb-4 flex-shrink-0">
-                    <h2 class="text-3xl font-bold"><i class="fa-brands fa-python text-brand-500 mr-2"></i> <span data-i18n="nav_python">Python IDE</span></h2>
-                    <div class="flex items-center gap-2">
-                        <span id="py-status" class="text-xs font-bold px-2 py-1 bg-slate-100 text-slate-600 rounded-lg dark:bg-slate-800 dark:text-slate-400">Esperando...</span>
-                        
-                        <button id="py-import-btn" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg transition-colors ml-2" title="Importar .py"><i class="fa-solid fa-file-import"></i></button>
-                        <input type="file" id="py-file-input" accept=".py" class="hidden">
-                        <button id="py-export-btn" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg transition-colors" title="Descargar .py"><i class="fa-solid fa-file-export"></i></button>
-                        <button id="py-clear-btn" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg transition-colors mr-2" title="Limpiar Consola"><i class="fa-solid fa-eraser"></i></button>
 
-                        <div class="relative flex items-center border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden bg-white dark:bg-[#1a2233]">
-                            <input type="text" id="py-package-input" placeholder="Librería (ej: numpy)" class="px-3 py-2 text-sm bg-transparent outline-none w-40 text-slate-800 dark:text-slate-200" data-i18n-placeholder="py_pkg_ph">
-                            <button id="py-install-btn" disabled class="px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors border-l border-slate-200 dark:border-slate-700" title="Instalar Librería"><i class="fa-solid fa-download"></i></button>
-                        </div>
-                        <button id="py-run-btn" disabled class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors flex items-center shadow-md shadow-green-500/20 ml-2"><i class="fa-solid fa-play mr-2"></i> <span data-i18n="py_run">Ejecutar</span></button>
-                    </div>
-                </div>
-                
-                <div class="flex-1 flex flex-col lg:flex-row gap-4 min-h-0">
-                    <!-- Editor Panel -->
-                    <div class="flex-1 flex flex-col min-h-0 relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-inner">
-                        <div class="absolute top-0 right-0 bg-slate-200/80 dark:bg-slate-800/80 backdrop-blur px-3 py-1 text-xs font-bold rounded-bl-lg z-10 uppercase tracking-wider text-slate-600 dark:text-slate-400">EDITOR (PYTHON)</div>
-                        <div id="py-editor" class="w-full h-full font-mono text-sm bg-slate-900 text-slate-100" style="padding-top: 2rem;"># Escribe tu código Python aquí
-print("Hola Mundo desde el navegador!")</div>
-                    </div>
-                    <!-- Terminal Panel (xterm.js) -->
-                    <div class="flex-1 flex flex-col min-h-0 relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm bg-[#0d1117] p-2 pt-8">
-                        <div class="absolute top-0 right-0 bg-slate-800/80 backdrop-blur px-3 py-1 text-xs font-bold rounded-bl-lg z-10 uppercase tracking-wider text-green-400">TERMINAL</div>
-                        <div id="py-xterm-container" class="w-full h-full"></div>
-                    </div>
-                </div>
-            </div>
 
             <!-- GUIDES VIEW -->
             <div id="view-guides" class="view-section hidden fade-in h-full flex flex-col relative">
