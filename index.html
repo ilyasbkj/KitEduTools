@@ -50,6 +50,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
     <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
+    <!-- Ace Editor -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.7/ace.js"></script>
     <!-- Custom CSS -->
     <link rel="stylesheet" href="styles.css">
     <style>
@@ -420,8 +422,8 @@ Escribe aquí usando **Markdown**.
                     <!-- Editor Panel -->
                     <div class="flex-1 flex flex-col min-h-0 relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-inner">
                         <div class="absolute top-0 right-0 bg-slate-200/80 dark:bg-slate-800/80 backdrop-blur px-3 py-1 text-xs font-bold rounded-bl-lg z-10 uppercase tracking-wider text-slate-600 dark:text-slate-400">EDITOR (PYTHON)</div>
-                        <textarea id="py-textarea" class="w-full h-full p-5 pt-8 font-mono text-sm bg-slate-900 text-slate-100 resize-none outline-none focus:ring-2 focus:ring-brand-500" spellcheck="false"># Escribe tu código Python aquí
-print("Hola Mundo desde el navegador!")</textarea>
+                        <div id="py-editor" class="w-full h-full font-mono text-sm bg-slate-900 text-slate-100" style="padding-top: 2rem;"># Escribe tu código Python aquí
+print("Hola Mundo desde el navegador!")</div>
                     </div>
                     <!-- Terminal Panel (xterm.js) -->
                     <div class="flex-1 flex flex-col min-h-0 relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm bg-[#0d1117] p-2 pt-8">

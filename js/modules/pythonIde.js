@@ -5,12 +5,13 @@ export const PythonIde = {
     inputBuffer: null,
     isWaitingForInput: false,
     inputString: '',
+    editor: null,
     
     async init() {
         const runBtn = document.getElementById('py-run-btn');
         const installBtn = document.getElementById('py-install-btn');
         const status = document.getElementById('py-status');
-        const textarea = document.getElementById('py-textarea');
+        const editorElement = document.getElementById('py-editor');
         const packageInput = document.getElementById('py-package-input');
         const importBtn = document.getElementById('py-import-btn');
         const fileInput = document.getElementById('py-file-input');
@@ -43,6 +44,27 @@ export const PythonIde = {
                 } catch(e) {}
             });
             resizeObserver.observe(termContainer);
+        }
+
+        // Init Ace Editor
+        if (editorElement && window.ace) {
+            this.editor = window.ace.edit('py-editor');
+            this.editor.setTheme('ace/theme/twilight');
+            this.editor.session.setMode('ace/mode/python');
+            this.editor.setOptions({
+                fontSize: "14px",
+                fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+                showPrintMargin: false,
+                enableBasicAutocompletion: true,
+                enableSnippets: true,
+                enableLiveAutocompletion: true
+            });
+            
+            // Fix resize issues
+            const editorResizeObserver = new ResizeObserver(() => {
+                this.editor.resize();
+            });
+            editorResizeObserver.observe(editorElement);
         }
 
         this.term.writeln('Iniciando entorno Python (Xterm + Worker)...');
@@ -134,7 +156,8 @@ export const PythonIde = {
         // UI Buttons
         runBtn.addEventListener('click', () => {
             this.term.clear();
-            this.worker.postMessage({ type: 'run', data: { code: textarea.value } });
+            const code = this.editor ? this.editor.getValue() : '';
+            this.worker.postMessage({ type: 'run', data: { code } });
         });
 
         installBtn.addEventListener('click', () => {
@@ -156,7 +179,9 @@ export const PythonIde = {
                 const file = e.target.files[0];
                 if (!file) return;
                 const reader = new FileReader();
-                reader.onload = (ev) => textarea.value = ev.target.result;
+                reader.onload = (ev) => {
+                    if (this.editor) this.editor.setValue(ev.target.result, -1);
+                };
                 reader.readAsText(file);
                 e.target.value = '';
             });
@@ -164,7 +189,8 @@ export const PythonIde = {
 
         if (exportBtn) {
             exportBtn.addEventListener('click', () => {
-                const blob = new Blob([textarea.value], { type: 'text/x-python' });
+                const code = this.editor ? this.editor.getValue() : '';
+                const blob = new Blob([code], { type: 'text/x-python' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
