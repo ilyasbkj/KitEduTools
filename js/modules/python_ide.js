@@ -151,8 +151,11 @@ for i in range(1, 4):
                 this.term.writeln(`\x1b[31m${msg.text}\x1b[0m`);
                 break;
             case 'request_input':
-                // Do not write prompt here, Python prints the input() prompt via stdout right before requesting input.
-                // We just start capturing keys.
+                // Python's input() prompt might be line-buffered and not show up immediately.
+                // We add a visual indicator and focus the terminal so the user knows they need to type.
+                this.term.write('\x1b[35m[Esperando entrada de texto...] \x1b[0m');
+                this.term.focus();
+                
                 new Promise(resolve => {
                     this.inputResolve = resolve;
                 }).then(inputText => {
