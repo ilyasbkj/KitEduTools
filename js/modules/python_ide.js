@@ -217,6 +217,7 @@ for i in range(1, 4):
         
         if (!this.pyodideReady) return;
         
+        btn.disabled = false;
         this.isRunning = running;
 
         if (running) {

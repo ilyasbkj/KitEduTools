@@ -17,6 +17,7 @@ export const I18n = {
             'nav_agenda': 'Agenda Personal',
             'nav_notebook': 'Libreta Apuntes',
             'nav_mindmap': 'Mapas Mentales',
+            'nav_flashcards': 'Flashcards',
             'nav_back_home': 'Volver al Inicio',
             
             'home_badge': '✨ Herramientas gratuitas para estudiantes',
@@ -46,6 +47,7 @@ export const I18n = {
             'tool_agen_desc': 'Gestiona tus eventos diarios con almacenamiento seguro en la nube. ☁️',
             'tool_note_desc': 'Guarda tus apuntes por asignatura, incluye imágenes y enlaces. ☁️',
             'tool_mind_desc': 'Crea y guarda esquemas interactivos en tu cuenta. ☁️',
+            'tool_flash_desc': 'Crea fichas de estudio interactivas para repasar conceptos rápidamente.',
             
             'badge_account': 'Cuenta',
             
@@ -71,6 +73,7 @@ export const I18n = {
             'nav_agenda': 'Agenda Personal',
             'nav_notebook': 'Llibreta d\'Apunts',
             'nav_mindmap': 'Mapes Mentals',
+            'nav_flashcards': 'Flashcards',
             'nav_back_home': 'Tornar a l\'Inici',
             
             'home_badge': '✨ Eines gratuïtes per a estudiants',
@@ -100,6 +103,7 @@ export const I18n = {
             'tool_agen_desc': 'Gestiona els teus esdeveniments diaris amb emmagatzematge segur al núvol. ☁️',
             'tool_note_desc': 'Guarda els teus apunts per assignatura, inclou imatges i enllaços. ☁️',
             'tool_mind_desc': 'Crea i guarda esquemes interactius al teu compte. ☁️',
+            'tool_flash_desc': 'Crea fitxes d\'estudi interactives per repassar conceptes ràpidament.',
             
             'badge_account': 'Compte',
             
@@ -125,6 +129,7 @@ export const I18n = {
             'nav_agenda': 'Personal Agenda',
             'nav_notebook': 'Notebook',
             'nav_mindmap': 'Mind Maps',
+            'nav_flashcards': 'Flashcards',
             'nav_back_home': 'Back to Home',
             
             'home_badge': '✨ Free tools for students',
@@ -154,6 +159,7 @@ export const I18n = {
             'tool_agen_desc': 'Manage your daily events with secure cloud storage. ☁️',
             'tool_note_desc': 'Save your notes by subject, includes images and links. ☁️',
             'tool_mind_desc': 'Create and save interactive schemes in your account. ☁️',
+            'tool_flash_desc': 'Create interactive study cards to review concepts quickly.',
             
             'badge_account': 'Account',
             

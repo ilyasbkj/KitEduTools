@@ -211,19 +211,6 @@
                     <button onclick="app.navigate('guides')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
                         <i class="fa-solid fa-book w-6"></i> <span data-i18n="nav_guides">Centro de Guías</span>
                     </button>
-                    <button onclick="app.navigate('agenda')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
-                        <i class="fa-solid fa-calendar-days w-6 text-blue-500"></i> <span data-i18n="nav_agenda">Agenda Personal</span>
-                    </button>
-                    <button onclick="app.navigate('notebook')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
-                        <i class="fa-solid fa-book-journal-whills w-6 text-blue-500"></i> <span data-i18n="nav_notebook">Libreta Apuntes</span>
-                    </button>
-                    <button onclick="app.navigate('mindmap')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
-                        <i class="fa-solid fa-diagram-project w-6 text-blue-500"></i> <span data-i18n="nav_mindmap">Mapas Mentales</span>
-                    </button>
-                </div>
-            </div>
-        </aside>
-
         <!-- Main Content Area -->
         <main class="flex-1 overflow-y-auto relative scroll-smooth p-3 md:p-8">
             
@@ -798,6 +785,87 @@ Escribe aquí usando **Markdown**.
                     <button id="btn-login-overlay" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 px-6 rounded-xl shadow-lg transition-transform hover:-translate-y-1 flex items-center justify-center gap-3 text-lg">
                         <i class="fa-brands fa-google text-xl"></i> Continuar con Google
                     </button>
+                </div>
+            </div>
+            <!-- FLASHCARDS VIEW -->
+            <div id="view-flashcards" class="view-section hidden fade-in h-full flex flex-col relative">
+                <div class="flex items-center justify-between mb-4 flex-shrink-0">
+                    <div class="flex items-center gap-3">
+                        <h2 class="text-2xl md:text-3xl font-bold"><i class="fa-solid fa-clone text-brand-500 mr-2"></i> Generador de Flashcards</h2>
+                    </div>
+                </div>
+
+                <div class="flex flex-col lg:flex-row flex-1 gap-6 overflow-hidden min-h-0">
+                    <!-- Left Sidebar for Creating Cards -->
+                    <div class="w-full lg:w-80 flex-shrink-0 bg-white dark:bg-[#151b26] border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col shadow-sm p-4 overflow-y-auto">
+                        <h3 class="text-lg font-bold mb-4 text-slate-800 dark:text-slate-200 border-b border-slate-100 dark:border-slate-800 pb-2">Crear Nueva Ficha</h3>
+                        
+                        <label class="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-1 block">Anverso (Pregunta)</label>
+                        <textarea id="flash-front-input" class="w-full p-3 rounded-xl bg-slate-50 dark:bg-[#0f141e] border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-brand-500 outline-none text-sm resize-none mb-4 min-h-[100px]" placeholder="Escribe el concepto o la pregunta..."></textarea>
+                        
+                        <label class="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-1 block">Reverso (Respuesta)</label>
+                        <textarea id="flash-back-input" class="w-full p-3 rounded-xl bg-slate-50 dark:bg-[#0f141e] border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-brand-500 outline-none text-sm resize-none mb-4 min-h-[100px]" placeholder="Escribe la respuesta o explicación..."></textarea>
+                        
+                        <button id="flash-btn-add" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl shadow-md shadow-brand-500/30 transition-all flex items-center justify-center gap-2 mb-6">
+                            <i class="fa-solid fa-plus"></i> Añadir Ficha
+                        </button>
+                        
+                        <div class="mt-auto">
+                            <div class="flex items-center justify-between bg-slate-50 dark:bg-[#0f141e] p-3 rounded-xl border border-slate-200 dark:border-slate-800 mb-2">
+                                <span class="text-sm font-medium text-slate-600 dark:text-slate-400">Total en mazo:</span>
+                                <span id="flash-counter" class="text-sm font-bold text-brand-600 dark:text-brand-400">0 fichas creadas</span>
+                            </div>
+                            <button id="flash-btn-clear" class="w-full text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 py-2 rounded-lg text-sm font-medium transition-colors border border-transparent hover:border-red-200 dark:hover:border-red-500/30">
+                                Limpiar Mazo
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Right Area for Studying -->
+                    <div class="flex-1 flex flex-col bg-slate-100/50 dark:bg-[#0f141e] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-inner relative p-4 lg:p-8 min-h-0">
+                        <!-- Toolbar -->
+                        <div class="flex justify-between items-center mb-6">
+                            <button id="flash-btn-shuffle" class="px-4 py-2 bg-white dark:bg-[#1a2233] hover:bg-slate-50 dark:hover:bg-[#252f44] border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                                <i class="fa-solid fa-shuffle text-brand-500"></i> Mezclar Mazo
+                            </button>
+                            <div id="flash-study-counter" class="text-sm font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-[#1a2233] px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
+                                0 / 0
+                            </div>
+                        </div>
+
+                        <!-- Card Container -->
+                        <div class="flex-1 flex items-center justify-center perspective-1000">
+                            <div id="flash-study-card" class="w-full max-w-2xl aspect-[4/3] sm:aspect-[3/2] cursor-pointer group relative">
+                                <div id="flash-study-inner" class="w-full h-full relative transform-style-3d flip-transition shadow-xl rounded-3xl">
+                                    
+                                    <!-- FRONT -->
+                                    <div class="absolute inset-0 backface-hidden bg-white dark:bg-[#151b26] border-2 border-slate-200 dark:border-slate-700 rounded-3xl flex flex-col items-center justify-center p-8 group-hover:border-brand-300 dark:group-hover:border-brand-700 transition-colors">
+                                        <div class="absolute top-4 left-6 text-xs font-bold text-slate-400 uppercase tracking-widest">Pregunta</div>
+                                        <div id="flash-study-front" class="w-full flex justify-center items-center h-full"></div>
+                                        <div class="absolute bottom-4 right-6 text-[10px] text-slate-300 dark:text-slate-600"><i class="fa-solid fa-hand-pointer mr-1"></i> Clic para girar</div>
+                                    </div>
+                                    
+                                    <!-- BACK -->
+                                    <div class="absolute inset-0 backface-hidden rotate-y-180 bg-brand-50 dark:bg-[#1a2233] border-2 border-brand-200 dark:border-brand-800 rounded-3xl flex flex-col items-center justify-center p-8">
+                                        <div class="absolute top-4 left-6 text-xs font-bold text-brand-500 dark:text-brand-400 uppercase tracking-widest">Respuesta</div>
+                                        <div id="flash-study-back" class="w-full flex justify-center items-center h-full"></div>
+                                        <div class="absolute bottom-4 right-6 text-[10px] text-brand-300 dark:text-brand-600"><i class="fa-solid fa-hand-pointer mr-1"></i> Clic para girar</div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Navigation -->
+                        <div class="flex justify-center gap-4 mt-8">
+                            <button id="flash-btn-prev" class="w-14 h-14 rounded-full bg-white dark:bg-[#1a2233] hover:bg-slate-50 dark:hover:bg-[#252f44] border border-slate-200 dark:border-slate-700 shadow-md flex items-center justify-center text-slate-600 dark:text-slate-300 transition-transform active:scale-95">
+                                <i class="fa-solid fa-arrow-left text-xl"></i>
+                            </button>
+                            <button id="flash-btn-next" class="w-14 h-14 rounded-full bg-brand-500 hover:bg-brand-600 text-white shadow-md shadow-brand-500/30 flex items-center justify-center transition-transform active:scale-95">
+                                <i class="fa-solid fa-arrow-right text-xl"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 

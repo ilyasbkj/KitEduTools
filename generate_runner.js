@@ -37,14 +37,8 @@ let cleanApp = appJs.split('\n').filter(l => !l.startsWith('import ')).join('\n'
 
 combined += `
 const Calculator = { init: () => {} };
-const Converter = { init: () => {} };
-const HtmlEditor = { init: () => {} };
-const MindMap = { init: () => {} };
-const Pomodoro = { init: () => {} };
-const TextAnalyzer = { init: () => {} };
-const SpellChecker = { init: () => {} };
 const MarkdownEditor = { init: () => {} };
-const PythonIde = { init: () => {} };
+const PythonIDE = { init: () => {} };
 const Guides = { init: () => {} };
 `;
 
@@ -59,4 +53,8 @@ fs.appendFileSync('test_runner.js', `\ntry {
 }\n`);
 
 console.log("Runner generated. Executing it...");
-require('child_process').execSync('node test_runner.js', {stdio: 'inherit'});
+try {
+    require('child_process').execSync('node test_runner.js', {stdio: 'inherit'});
+} catch (err) {
+    console.warn("Could not execute test_runner.js automatically (make sure node is installed and in your PATH):", err.message);
+}

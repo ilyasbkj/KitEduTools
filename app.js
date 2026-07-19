@@ -6,6 +6,7 @@ import { Calculator } from './js/modules/calculator.js';
 import { I18n } from './js/modules/i18n.js';
 import { Guides } from './js/modules/guides.js';
 import { PythonIDE } from './js/modules/python_ide.js';
+import { Flashcards } from './js/modules/flashcards.js';
 
 // TODO: Configuración Firebase (Reemplazar con tus credenciales)
 const firebaseConfig = {
@@ -40,6 +41,7 @@ const app = {
         { id: 'pomodoro', nameKey: 'nav_pomodoro', catKey: 'cat_study', icon: 'fa-stopwatch', color: 'text-brand-500', bg: 'bg-brand-50 dark:bg-brand-900/20', descKey: 'tool_pomo_desc' },
         { id: 'textanalyzer', nameKey: 'nav_textanalyzer', catKey: 'cat_study', icon: 'fa-chart-simple', color: 'text-brand-500', bg: 'bg-brand-50 dark:bg-brand-900/20', descKey: 'tool_text_desc' },
         { id: 'spellchecker', nameKey: 'nav_spellchecker', catKey: 'cat_study', icon: 'fa-spell-check', color: 'text-brand-500', bg: 'bg-brand-50 dark:bg-brand-900/20', descKey: 'tool_spell_desc' },
+        { id: 'flashcards', nameKey: 'nav_flashcards', catKey: 'cat_study', icon: 'fa-clone', color: 'text-brand-500', bg: 'bg-brand-50 dark:bg-brand-900/20', descKey: 'tool_flash_desc' },
         { id: 'markdown', nameKey: 'nav_markdown', catKey: 'cat_dev', icon: 'fa-file-pen', color: 'text-brand-500', bg: 'bg-brand-50 dark:bg-brand-900/20', descKey: 'tool_mark_desc' },
         { id: 'python', nameKey: 'nav_python', catKey: 'cat_dev', icon: 'fa-brands fa-python', color: 'text-yellow-500', bg: 'bg-yellow-50 dark:bg-yellow-900/20', descKey: 'tool_py_desc' },
         { id: 'guides', nameKey: 'nav_guides', catKey: 'cat_dev', icon: 'fa-book', color: 'text-brand-500', bg: 'bg-brand-50 dark:bg-brand-900/20', descKey: 'tool_gui_desc' },
@@ -62,6 +64,7 @@ const app = {
         Pomodoro.init();
         TextAnalyzer.init();
         SpellChecker.init();
+        Flashcards.init();
         MarkdownEditor.init();
         PythonIDE.init();
         Guides.init();
@@ -1689,7 +1692,7 @@ const SpellChecker = {
             resultHtml += this.escapeHtml(before);
             
             const matchData = encodeURIComponent(JSON.stringify(match.replacements.slice(0, 5).map(r => r.value)));
-            resultHtml += `<span class="spell-error" onclick="SpellChecker.showMenu(event, this, '${matchData}')">${this.escapeHtml(errorText)}</span>`;
+            resultHtml += `<span class="spell-error" onclick="window.SpellChecker.showMenu(event, this, '${matchData}')">${this.escapeHtml(errorText)}</span>`;
             
             lastIndex = match.offset + match.length;
         });
@@ -3029,6 +3032,7 @@ window.Agenda = Agenda;
 window.Notebook = Notebook;
 window.MindMap = MindMap;
 window.ModalManager = ModalManager;
+window.SpellChecker = SpellChecker;
 window.app = app;
 
 document.addEventListener('DOMContentLoaded', () => {
