@@ -3038,3 +3038,47 @@ window.app = app;
 document.addEventListener('DOMContentLoaded', () => {
     app.init();
 });
+
+// -- FONT SELECTOR LOGIC --
+document.addEventListener('DOMContentLoaded', () => {
+    let savedSelection = null;
+
+    document.addEventListener('selectionchange', () => {
+        const sel = window.getSelection();
+        if (sel.rangeCount > 0) {
+            const node = sel.anchorNode;
+            if (node) {
+                const nbEditor = document.getElementById('nb-editor');
+                if (nbEditor && nbEditor.contains(node)) {
+                    savedSelection = sel.getRangeAt(0);
+                } else if (node.nodeType === 1 && node.closest('.mindmap-node')) {
+                    savedSelection = sel.getRangeAt(0);
+                } else if (node.parentElement && node.parentElement.closest('.mindmap-node')) {
+                    savedSelection = sel.getRangeAt(0);
+                }
+            }
+        }
+    });
+
+    const applyFont = (selectEl, editorEl) => {
+        const font = selectEl.value;
+        if (font && savedSelection) {
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(savedSelection);
+            document.execCommand('fontName', false, font);
+            selectEl.selectedIndex = 0;
+            if (editorEl) editorEl.focus();
+        }
+    };
+
+    const nbSelect = document.getElementById('nb-font-select');
+    if (nbSelect) {
+        nbSelect.addEventListener('change', () => applyFont(nbSelect, document.getElementById('nb-editor')));
+    }
+
+    const mmSelect = document.getElementById('mm-font-select');
+    if (mmSelect) {
+        mmSelect.addEventListener('change', () => applyFont(mmSelect, null));
+    }
+});
