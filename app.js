@@ -536,6 +536,11 @@ const MindMap = {
         colorBgInput.addEventListener('input', (e) => this.setNodeColors(e.target.value, null));
         colorTextInput.addEventListener('input', (e) => this.setNodeColors(null, e.target.value));
         
+        const fontSelectInput = document.getElementById('mm-font-select');
+        if (fontSelectInput) {
+            fontSelectInput.addEventListener('change', (e) => this.setNodeFontFamily(e.target.value));
+        }
+
         document.getElementById('mm-size-up').onclick = () => this.setNodeScale(0.1);
         document.getElementById('mm-size-down').onclick = () => this.setNodeScale(-0.1);
 
@@ -874,7 +879,7 @@ const MindMap = {
         el.addEventListener('pointerdown', (e) => this.startDrag(e, id, el));
 
         this.nodesContainer.appendChild(el);
-        this.nodes.push({ id, text: content.innerHTML, x, y, bgColor: defaultBg, textColor: defaultText, scale: 1, el });
+        this.nodes.push({ id, text: content.innerHTML, x, y, bgColor: defaultBg, textColor: defaultText, scale: 1, fontFamily: '', el });
 
         if (parentId) {
             this.connections.push({ from: parentId, to: id });
@@ -899,6 +904,16 @@ const MindMap = {
         }
     },
     
+    setNodeFontFamily(fontFamily) {
+        if (!this.selectedNodeId) return;
+        const node = this.nodes.find(n => n.id === this.selectedNodeId);
+        if (node) {
+            node.fontFamily = fontFamily;
+            node.el.style.fontFamily = fontFamily;
+            this.saveToCloud();
+        }
+    },
+
     setNodeScale(delta) {
         if (!this.selectedNodeId) return;
         const node = this.nodes.find(n => n.id === this.selectedNodeId);
@@ -1011,6 +1026,8 @@ const MindMap = {
                 if(nodeData) {
                     document.getElementById('mm-color-bg').value = this.rgbToHex(nodeData.bgColor);
                     document.getElementById('mm-color-text').value = this.rgbToHex(nodeData.textColor);
+                    const fontSelect = document.getElementById('mm-font-select');
+                    if (fontSelect) fontSelect.value = nodeData.fontFamily || '';
                 }
                 
                 if (showToolbar) {
@@ -1142,7 +1159,7 @@ const MindMap = {
 
     exportJSON() {
         const data = {
-            nodes: this.nodes.map(n => ({ id: n.id, text: n.text, x: n.x, y: n.y, bgColor: n.bgColor, textColor: n.textColor, scale: n.scale })),
+            nodes: this.nodes.map(n => ({ id: n.id, text: n.text, x: n.x, y: n.y, bgColor: n.bgColor, textColor: n.textColor, scale: n.scale, fontFamily: n.fontFamily })),
             connections: this.connections
         };
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -1179,6 +1196,7 @@ const MindMap = {
                     el.style.transform = `scale(${scale})`;
                     el.style.backgroundColor = n.bgColor || '#ffffff';
                     el.style.color = n.textColor || '#1e293b';
+                    if (n.fontFamily) el.style.fontFamily = n.fontFamily;
                     
                     const content = document.createElement('div');
                     content.className = 'node-content font-medium';
@@ -1203,7 +1221,7 @@ const MindMap = {
                     el.addEventListener('pointerdown', (ev) => this.startDrag(ev, n.id, el));
 
                     this.nodesContainer.appendChild(el);
-                    this.nodes.push({ id: n.id, text: n.text, x: n.x, y: n.y, bgColor: n.bgColor || '#ffffff', textColor: n.textColor || '#1e293b', scale: scale, el });
+                    this.nodes.push({ id: n.id, text: n.text, x: n.x, y: n.y, bgColor: n.bgColor || '#ffffff', textColor: n.textColor || '#1e293b', scale: scale, fontFamily: n.fontFamily || '', el });
                 });
 
                 this.connections = data.connections;
@@ -1223,7 +1241,7 @@ const MindMap = {
     
     getMapData() {
         return {
-            nodes: this.nodes.map(n => ({ id: n.id, text: n.text, x: n.x, y: n.y, bgColor: n.bgColor, textColor: n.textColor, scale: n.scale })),
+            nodes: this.nodes.map(n => ({ id: n.id, text: n.text, x: n.x, y: n.y, bgColor: n.bgColor, textColor: n.textColor, scale: n.scale, fontFamily: n.fontFamily })),
             connections: this.connections
         };
     },
@@ -1241,6 +1259,7 @@ const MindMap = {
             el.style.transform = `scale(${scale})`;
             el.style.backgroundColor = n.bgColor || '#ffffff';
             el.style.color = n.textColor || '#1e293b';
+            if (n.fontFamily) el.style.fontFamily = n.fontFamily;
             const content = document.createElement('div');
             content.className = 'node-content font-medium';
             content.innerHTML = n.text;
@@ -1260,7 +1279,7 @@ const MindMap = {
             };
             el.addEventListener('pointerdown', (ev) => this.startDrag(ev, n.id, el));
             this.nodesContainer.appendChild(el);
-            this.nodes.push({ id: n.id, text: n.text, x: n.x, y: n.y, bgColor: n.bgColor || '#ffffff', textColor: n.textColor || '#1e293b', scale, el });
+            this.nodes.push({ id: n.id, text: n.text, x: n.x, y: n.y, bgColor: n.bgColor || '#ffffff', textColor: n.textColor || '#1e293b', scale, fontFamily: n.fontFamily || '', el });
         });
         this.connections = data.connections;
         this.renderLines();
@@ -3077,8 +3096,5 @@ document.addEventListener('DOMContentLoaded', () => {
         nbSelect.addEventListener('change', () => applyFont(nbSelect, document.getElementById('nb-editor')));
     }
 
-    const mmSelect = document.getElementById('mm-font-select');
-    if (mmSelect) {
-        mmSelect.addEventListener('change', () => applyFont(mmSelect, null));
-    }
+    // mmSelect font logic for MindMap is handled within MindMap.init()
 });
