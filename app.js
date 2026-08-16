@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, signInWithPopup, signInWithRedirect, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, where, orderBy, onSnapshot, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { MarkdownEditor } from './js/modules/markdown.js';
 import { Calculator } from './js/modules/calculator.js';
@@ -29,7 +29,7 @@ try {
     console.error("Firebase no configurado:", e);
 }
 
-window.fb = { auth, db, provider, signInWithPopup, onAuthStateChanged, signOut, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, where, orderBy, onSnapshot, setDoc, getDoc };
+window.fb = { auth, db, provider, signInWithPopup, signInWithRedirect, onAuthStateChanged, signOut, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, where, orderBy, onSnapshot, setDoc, getDoc };
 
 const app = {
     currentView: 'home',
@@ -745,15 +745,15 @@ const MindMap = {
         
         const q = window.fb.query(
             window.fb.collection(window.fb.db, 'mindmaps'),
-            window.fb.where('uid', '==', AuthManager.currentUser.uid),
-            window.fb.orderBy('createdAt', 'asc')
+            window.fb.where('uid', '==', AuthManager.currentUser.uid)
         );
 
         window.fb.onSnapshot(q, (snapshot) => {
             this.maps = [];
             snapshot.forEach(doc => this.maps.push({ id: doc.id, ...doc.data() }));
+            this.maps.sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
             this.renderMapList();
-        }, (err) => { console.error(err); });
+        }, (err) => { console.error(err); app.toast('Error al cargar los mapas'); });
     },
 
     renderMapList() {
@@ -1710,7 +1710,7 @@ const SpellChecker = {
             
             resultHtml += this.escapeHtml(before);
             
-            const matchData = encodeURIComponent(JSON.stringify(match.replacements.slice(0, 5).map(r => r.value)));
+            const matchData = encodeURIComponent(JSON.stringify(match.replacements.slice(0, 5).map(r => r.value))).replace(/'/g, '%27');
             resultHtml += `<span class="spell-error" onclick="window.SpellChecker.showMenu(event, this, '${matchData}')">${this.escapeHtml(errorText)}</span>`;
             
             lastIndex = match.offset + match.length;
@@ -2232,7 +2232,7 @@ const AuthManager = {
                     ThemeManager.resetToDefault();
                 }
 
-                if (['agenda', 'notebook'].includes(app.currentView)) {
+                if (['agenda', 'notebook', 'mindmap'].includes(app.currentView)) {
                     app.navigate(app.currentView);
                 }
             });
@@ -2249,7 +2249,16 @@ const AuthManager = {
             app.toast('Sesión iniciada correctamente');
         } catch (error) {
             console.error(error);
-            app.toast('Error al iniciar sesión');
+            // Los dominios de centro educativo suelen bloquear el popup: reintenta con redirect
+            if (['auth/popup-blocked', 'auth/popup-closed-by-user', 'auth/cancelled-popup-request'].includes(error.code)) {
+                try {
+                    await window.fb.signInWithRedirect(window.fb.auth, window.fb.provider);
+                    return;
+                } catch (redirectErr) {
+                    console.error(redirectErr);
+                }
+            }
+            app.toast('Error al iniciar sesión: ' + (error.code || ''));
         }
     },
     
@@ -2709,8 +2718,7 @@ const Notebook = {
         
         const q = window.fb.query(
             window.fb.collection(window.fb.db, "notebook_subjects"), 
-            window.fb.where("uid", "==", AuthManager.currentUser.uid),
-            window.fb.orderBy("createdAt", "asc")
+            window.fb.where("uid", "==", AuthManager.currentUser.uid)
         );
         
         window.fb.onSnapshot(q, (snapshot) => {
@@ -2718,10 +2726,11 @@ const Notebook = {
             snapshot.forEach((doc) => {
                 this.subjects.push({ id: doc.id, ...doc.data() });
             });
+            this.subjects.sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
             this.renderSubjects();
         }, (error) => {
             console.error("Error cargando asignaturas:", error);
-            alert("Error cargando asignaturas: " + error.message);
+            app.toast("Error al cargar las asignaturas");
         });
     },
     
@@ -2810,8 +2819,7 @@ const Notebook = {
         
         const q = window.fb.query(
             window.fb.collection(window.fb.db, "notebook_topics"), 
-            window.fb.where("subjectId", "==", this.currentSubjectId),
-            window.fb.orderBy("createdAt", "asc")
+            window.fb.where("subjectId", "==", this.currentSubjectId)
         );
         
         window.fb.onSnapshot(q, (snapshot) => {
@@ -2819,10 +2827,11 @@ const Notebook = {
             snapshot.forEach((doc) => {
                 this.topics.push({ id: doc.id, ...doc.data() });
             });
+            this.topics.sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
             this.renderTopics();
         }, (error) => {
             console.error("Error cargando temas:", error);
-            alert("Error cargando temas: " + error.message);
+            app.toast("Error al cargar los temas");
         });
     },
     
