@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, signInWithPopup, signInWithRedirect, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, where, orderBy, onSnapshot, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { MarkdownEditor } from './js/modules/markdown.js';
 import { Calculator } from './js/modules/calculator.js';
@@ -29,7 +29,7 @@ try {
     console.error("Firebase no configurado:", e);
 }
 
-window.fb = { auth, db, provider, signInWithPopup, signInWithRedirect, onAuthStateChanged, signOut, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, where, orderBy, onSnapshot, setDoc, getDoc };
+window.fb = { auth, db, provider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, where, orderBy, onSnapshot, setDoc, getDoc };
 
 const app = {
     currentView: 'home',
@@ -2222,6 +2222,16 @@ const AuthManager = {
         if (btnLogout) btnLogout.onclick = () => this.signOut();
         
         if (window.fb && window.fb.auth) {
+            if (window.fb.getRedirectResult) {
+                window.fb.getRedirectResult(window.fb.auth).then((result) => {
+                    if (result && result.user) {
+                        app.toast('Sesión iniciada correctamente');
+                    }
+                }).catch((error) => {
+                    console.error('Error procesando redirección de auth:', error);
+                });
+            }
+
             window.fb.onAuthStateChanged(window.fb.auth, (user) => {
                 this.currentUser = user;
                 this.updateUI(user);
@@ -2248,17 +2258,17 @@ const AuthManager = {
             await window.fb.signInWithPopup(window.fb.auth, window.fb.provider);
             app.toast('Sesión iniciada correctamente');
         } catch (error) {
-            console.error(error);
-            // Los dominios de centro educativo suelen bloquear el popup: reintenta con redirect
+            console.error('Error al iniciar sesión:', error);
+            // Los dominios de centro educativo o restricciones de navegador suelen bloquear el popup: reintenta con redirect
             if (['auth/popup-blocked', 'auth/popup-closed-by-user', 'auth/cancelled-popup-request'].includes(error.code)) {
                 try {
                     await window.fb.signInWithRedirect(window.fb.auth, window.fb.provider);
                     return;
                 } catch (redirectErr) {
-                    console.error(redirectErr);
+                    console.error('Error en signInWithRedirect:', redirectErr);
                 }
             }
-            app.toast('Error al iniciar sesión: ' + (error.code || ''));
+            app.toast('Error al iniciar sesión: ' + (error.code || error.message || ''));
         }
     },
     
