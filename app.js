@@ -2225,13 +2225,18 @@ const AuthManager = {
             // Captura el resultado cuando el usuario vuelve tras el redirect de Google.
             // getRedirectResult devuelve null si no venimos de un redirect (carga normal).
             if (window.fb.getRedirectResult) {
+                console.log('[Auth] Llamando a getRedirectResult...');
                 window.fb.getRedirectResult(window.fb.auth).then((result) => {
+                    console.log('[Auth] getRedirectResult resultado:', result);
                     if (result && result.user) {
+                        console.log('[Auth] Usuario obtenido del redirect:', result.user.email);
                         // El toast lo mostrará onAuthStateChanged al detectar al usuario
+                    } else {
+                        console.log('[Auth] getRedirectResult: sin usuario (carga normal o redirect sin resultado)');
                     }
                 }).catch((error) => {
+                    console.error('[Auth] getRedirectResult ERROR:', error.code, error.message, error);
                     if (error.code !== 'auth/no-redirect-result') {
-                        console.error('Error procesando redirección de auth:', error);
                         app.toast('Error al iniciar sesión: ' + (error.code || error.message || ''));
                     }
                 });
