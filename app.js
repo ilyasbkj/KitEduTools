@@ -11,7 +11,7 @@ import { Flashcards } from './js/modules/flashcards.js';
 // TODO: Configuración Firebase (Reemplazar con tus credenciales)
 const firebaseConfig = {
   apiKey: "AIzaSyA-a_EdFks430bjdsnXFmsnhrTrJ9Qdhdw",
-  authDomain: "kitedutools.firebaseapp.com",
+  authDomain: "kitedutools.com",
   projectId: "kitedutools",
   storageBucket: "kitedutools.firebasestorage.app",
   messagingSenderId: "903715609205",
