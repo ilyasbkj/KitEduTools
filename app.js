@@ -2222,22 +2222,32 @@ const AuthManager = {
         if (btnLogout) btnLogout.onclick = () => this.signOut();
         
         if (window.fb && window.fb.auth) {
+            // Captura el resultado cuando el usuario vuelve tras el redirect de Google.
+            // getRedirectResult devuelve null si no venimos de un redirect (carga normal).
             if (window.fb.getRedirectResult) {
                 window.fb.getRedirectResult(window.fb.auth).then((result) => {
                     if (result && result.user) {
-                        app.toast('Sesión iniciada correctamente');
+                        // El toast lo mostrará onAuthStateChanged al detectar al usuario
                     }
                 }).catch((error) => {
-                    console.error('Error procesando redirección de auth:', error);
+                    if (error.code !== 'auth/no-redirect-result') {
+                        console.error('Error procesando redirección de auth:', error);
+                        app.toast('Error al iniciar sesión: ' + (error.code || error.message || ''));
+                    }
                 });
             }
 
             window.fb.onAuthStateChanged(window.fb.auth, (user) => {
+                const wasLoggedIn = !!this.currentUser;
                 this.currentUser = user;
                 this.updateUI(user);
 
                 if (user) {
                     ThemeManager.loadForUser(user.uid);
+                    // Mostrar toast solo al iniciar sesión (no en recargas donde ya había sesión)
+                    if (!wasLoggedIn) {
+                        app.toast('Sesión iniciada correctamente');
+                    }
                 } else {
                     ThemeManager.resetToDefault();
                 }
@@ -2255,19 +2265,13 @@ const AuthManager = {
             return;
         }
         try {
-            await window.fb.signInWithPopup(window.fb.auth, window.fb.provider);
-            app.toast('Sesión iniciada correctamente');
+            // Usamos signInWithRedirect en lugar de signInWithPopup para evitar
+            // el bloqueo silencioso causado por la eliminación de cookies de terceros
+            // en Chrome 127+ y otros navegadores modernos.
+            // El resultado se captura en init() mediante getRedirectResult().
+            await window.fb.signInWithRedirect(window.fb.auth, window.fb.provider);
         } catch (error) {
             console.error('Error al iniciar sesión:', error);
-            // Los dominios de centro educativo o restricciones de navegador suelen bloquear el popup: reintenta con redirect
-            if (['auth/popup-blocked', 'auth/popup-closed-by-user', 'auth/cancelled-popup-request'].includes(error.code)) {
-                try {
-                    await window.fb.signInWithRedirect(window.fb.auth, window.fb.provider);
-                    return;
-                } catch (redirectErr) {
-                    console.error('Error en signInWithRedirect:', redirectErr);
-                }
-            }
             app.toast('Error al iniciar sesión: ' + (error.code || error.message || ''));
         }
     },
