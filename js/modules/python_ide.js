@@ -127,17 +127,12 @@ for i in range(1, 4):
     },
 
     initWorker() {
-        if (!window.SharedArrayBuffer) {
-            this.term.writeln('\x1b[31mError: SharedArrayBuffer no soportado.\x1b[0m');
-            this.term.writeln('\x1b[31mEl servidor debe usar Cross-Origin-Opener-Policy: same-origin y Cross-Origin-Embedder-Policy: credentialless\x1b[0m');
-            return;
-        }
-
-        this.sharedBuffer = new SharedArrayBuffer(1024);
+        const hasSAB = typeof SharedArrayBuffer !== 'undefined';
+        this.sharedBuffer = hasSAB ? new SharedArrayBuffer(1024) : new ArrayBuffer(1024);
         this.int32Array = new Int32Array(this.sharedBuffer);
         this.uint8Array = new Uint8Array(this.sharedBuffer);
         
-        this.interruptBuffer = new SharedArrayBuffer(4);
+        this.interruptBuffer = hasSAB ? new SharedArrayBuffer(4) : new ArrayBuffer(4);
         this.interruptArray = new Int32Array(this.interruptBuffer);
 
         this.worker = new Worker('js/modules/python_worker.js');
