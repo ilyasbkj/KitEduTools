@@ -11,7 +11,7 @@ import { Flashcards } from './js/modules/flashcards.js';
 // TODO: Configuración Firebase (Reemplazar con tus credenciales)
 const firebaseConfig = {
   apiKey: "AIzaSyA-a_EdFks430bjdsnXFmsnhrTrJ9Qdhdw",
-  authDomain: "kitedutools.com",
+  authDomain: "kitedutools.firebaseapp.com",
   projectId: "kitedutools",
   storageBucket: "kitedutools.firebasestorage.app",
   messagingSenderId: "903715609205",
@@ -2270,13 +2270,22 @@ const AuthManager = {
             return;
         }
         try {
-            // Usamos signInWithRedirect en lugar de signInWithPopup para evitar
-            // el bloqueo silencioso causado por la eliminación de cookies de terceros
-            // en Chrome 127+ y otros navegadores modernos.
-            // El resultado se captura en init() mediante getRedirectResult().
-            await window.fb.signInWithRedirect(window.fb.auth, window.fb.provider);
+            // Con Cross-Origin-Opener-Policy: same-origin-allow-popups,
+            // el popup de Google puede comunicarse directamente con la ventana principal.
+            await window.fb.signInWithPopup(window.fb.auth, window.fb.provider);
         } catch (error) {
-            console.error('Error al iniciar sesión:', error);
+            console.error('Error en signInWithPopup:', error);
+            // Si el navegador bloqueó la ventana emergente, fallback a redirect
+            if (['auth/popup-blocked', 'auth/popup-closed-by-user', 'auth/cancelled-popup-request'].includes(error.code)) {
+                try {
+                    await window.fb.signInWithRedirect(window.fb.auth, window.fb.provider);
+                    return;
+                } catch (redirectErr) {
+                    console.error('Error en signInWithRedirect fallback:', redirectErr);
+                    app.toast('Error al iniciar sesión: ' + (redirectErr.code || redirectErr.message || ''));
+                    return;
+                }
+            }
             app.toast('Error al iniciar sesión: ' + (error.code || error.message || ''));
         }
     },
@@ -3082,9 +3091,11 @@ window.ModalManager = ModalManager;
 window.SpellChecker = SpellChecker;
 window.app = app;
 
-document.addEventListener('DOMContentLoaded', () => {
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => app.init());
+} else {
     app.init();
-});
+}
 
 // -- FONT SELECTOR LOGIC --
 document.addEventListener('DOMContentLoaded', () => {
