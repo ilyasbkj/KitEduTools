@@ -53,6 +53,7 @@ const app = {
     init() {
         I18n.init();
         this.initTheme();
+        this.initCookieConsent();
         this.initFilters();
         this.renderHomeCards();
         this.sortSidebarTools();
@@ -85,6 +86,41 @@ const app = {
         const startView = (location.hash || '').replace('#', '');
         const validStart = startView && document.getElementById(`view-${startView}`) ? startView : 'home';
         this.navigate(validStart, { replace: true });
+    },
+
+    initCookieConsent() {
+        const banner = document.getElementById('cookie-banner');
+        const acceptButton = document.getElementById('cookie-accept');
+        const rejectButton = document.getElementById('cookie-reject');
+        const settingsButton = document.getElementById('open-cookie-settings');
+        if (!banner || !acceptButton || !rejectButton) return;
+
+        const loadAdSense = () => {
+            if (document.querySelector('script[data-adsense-loader]')) return;
+            const script = document.createElement('script');
+            script.async = true;
+            script.crossOrigin = 'anonymous';
+            script.dataset.adsenseLoader = 'true';
+            script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4056952798195040';
+            document.head.appendChild(script);
+        };
+
+        const saveChoice = (choice) => {
+            localStorage.setItem('kitedutools-ad-consent', choice);
+            banner.classList.add('hidden');
+            if (choice === 'accepted') loadAdSense();
+        };
+
+        const savedChoice = localStorage.getItem('kitedutools-ad-consent');
+        if (savedChoice === 'accepted') {
+            loadAdSense();
+        } else if (!savedChoice) {
+            banner.classList.remove('hidden');
+        }
+
+        acceptButton.addEventListener('click', () => saveChoice('accepted'));
+        rejectButton.addEventListener('click', () => saveChoice('rejected'));
+        settingsButton?.addEventListener('click', () => banner.classList.remove('hidden'));
     },
 
     initRouting() {

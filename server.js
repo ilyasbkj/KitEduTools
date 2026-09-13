@@ -10,6 +10,8 @@ const mimeTypes = {
     '.mjs': 'text/javascript',
     '.css': 'text/css',
     '.json': 'application/json',
+    '.txt': 'text/plain; charset=utf-8',
+    '.xml': 'application/xml; charset=utf-8',
     '.png': 'image/png',
     '.jpg': 'image/jpg',
     '.gif': 'image/gif',
@@ -26,13 +28,10 @@ const mimeTypes = {
 const server = http.createServer((request, response) => {
     response.setHeader('Access-Control-Allow-Origin', '*');
 
-    let filePath = '.' + request.url;
-    if (filePath === './') {
-        filePath = './index.html';
+    let filePath = ('.' + request.url).split('?')[0];
+    if (filePath.endsWith('/')) {
+        filePath += 'index.html';
     }
-
-    // Strip query parameters
-    filePath = filePath.split('?')[0];
 
     const extname = String(path.extname(filePath)).toLowerCase();
     const contentType = mimeTypes[extname] || 'application/octet-stream';
