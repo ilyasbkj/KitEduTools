@@ -67,7 +67,7 @@
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 dark:bg-[#0f141e] dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-300">
+<body class="bg-slate-50 text-slate-900 dark:bg-[#0f141e] dark:text-slate-100 h-screen overflow-hidden flex flex-col transition-colors duration-300">
 
     <!-- Global Top Navigation -->
     <nav class="border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-[#0f141e]/80 backdrop-blur-md sticky top-0 z-40">
@@ -143,7 +143,7 @@
     </nav>
 
     <!-- Main Container (Sidebar + Content) -->
-    <div class="flex flex-1 overflow-hidden relative" style="height: calc(100vh - 56px)">
+    <div class="flex flex-1 min-h-0 overflow-hidden relative">
         
         <!-- Mobile Sidebar Overlay -->
         <div id="mobile-overlay" class="hidden absolute inset-0 bg-slate-900/50 z-40 md:hidden backdrop-blur-sm"></div>
@@ -154,7 +154,7 @@
                 <button onclick="app.navigate('home')" class="w-full flex items-center px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white mb-4">
                     <i class="fa-solid fa-arrow-left mr-2"></i> <span data-i18n="nav_back_home">Volver al Inicio</span>
                 </button>
-                <div class="space-y-1">
+                <div id="sidebar-tools" class="space-y-1">
                     <p class="px-4 pb-1 text-xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="nav_tools">Herramientas</p>
                     <button onclick="app.navigate('calculator')" class="nav-btn w-full flex items-center px-4 py-3 text-left rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
                         <i class="fa-solid fa-calculator w-6"></i> <span data-i18n="nav_calculator">Calculadora</span>
@@ -1265,7 +1265,7 @@ Escribe aquí usando **Markdown**.
             </div>
 
             <!-- GLOBAL FOOTER -->
-            <footer id="main-footer" class="hidden mt-16 pt-10 pb-8 border-t border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-sm">
+            <footer id="main-footer" class="mt-16 pt-10 pb-8 border-t border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-sm">
                 <div class="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
                     <!-- Col 1: Brand & Mission -->
                     <div class="md:col-span-1 space-y-3">

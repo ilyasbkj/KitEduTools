@@ -55,6 +55,7 @@ const app = {
         this.initTheme();
         this.initFilters();
         this.renderHomeCards();
+        this.sortSidebarTools();
         this.initSearch();
         
         Calculator.init();
@@ -78,6 +79,7 @@ const app = {
         this.initRouting();
         document.addEventListener('languageChanged', () => {
             this.renderHomeCards(document.getElementById('global-search').value);
+            this.sortSidebarTools();
         });
 
         const startView = (location.hash || '').replace('#', '');
@@ -169,20 +171,10 @@ const app = {
         
         this.currentView = viewId;
 
-        // Scroll to top of main content on every navigation
+        // Cada navegación comienza arriba: así no se conserva una posición
+        // de scroll que podría dejar visibles sólo el pie o el final de otra vista.
         const mainEl = document.querySelector('main');
         if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'instant' });
-
-        // Show footer only on content pages (home, legal, about, contact)
-        const contentPages = ['home', 'privacy', 'terms', 'about', 'contact'];
-        const footer = document.getElementById('main-footer');
-        if (footer) {
-            if (contentPages.includes(viewId)) {
-                footer.classList.remove('hidden');
-            } else {
-                footer.classList.add('hidden');
-            }
-        }
 
         if (typeof Pomodoro !== 'undefined') Pomodoro.onNavigate(viewId);
         
@@ -247,23 +239,7 @@ const app = {
             return matchSearch && matchCat;
         });
 
-        // SORT BY CUSTOM CATEGORY ORDER AND BADGE
-        const catOrder = { 'cat_study': 1, 'cat_math': 2, 'cat_dev': 3 };
-        
-        filteredTools.sort((a, b) => {
-            const aIsAccount = a.badgeKey === 'badge_account';
-            const bIsAccount = b.badgeKey === 'badge_account';
-            
-            if (aIsAccount && !bIsAccount) return 1;
-            if (!aIsAccount && bIsAccount) return -1;
-            
-            const orderA = catOrder[a.catKey] || 99;
-            const orderB = catOrder[b.catKey] || 99;
-            
-            if (orderA !== orderB) return orderA - orderB;
-            
-            return a.name.localeCompare(b.name);
-        });
+        filteredTools = this.sortTools(filteredTools);
 
         if (filteredTools.length === 0) {
             grid.innerHTML = `<p class="col-span-full text-center text-slate-500 py-10" data-i18n="no_tools_found">${I18n.get('no_tools_found')}</p>`;
@@ -290,6 +266,38 @@ const app = {
                 <p class="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">${tool.desc}</p>
             `;
             grid.appendChild(card);
+        });
+    },
+
+    // Mantiene una única regla de orden para las tarjetas de inicio y el menú.
+    sortTools(tools) {
+        const catOrder = { 'cat_study': 1, 'cat_math': 2, 'cat_dev': 3 };
+
+        return [...tools].sort((a, b) => {
+            const aIsAccount = a.badgeKey === 'badge_account';
+            const bIsAccount = b.badgeKey === 'badge_account';
+
+            if (aIsAccount && !bIsAccount) return 1;
+            if (!aIsAccount && bIsAccount) return -1;
+
+            const orderA = catOrder[a.catKey] || 99;
+            const orderB = catOrder[b.catKey] || 99;
+
+            if (orderA !== orderB) return orderA - orderB;
+
+            return I18n.get(a.nameKey).localeCompare(I18n.get(b.nameKey), I18n.currentLang);
+        });
+    },
+
+    sortSidebarTools() {
+        const sidebarTools = document.getElementById('sidebar-tools');
+        if (!sidebarTools) return;
+
+        this.sortTools(this.tools).forEach(tool => {
+            const button = Array.from(sidebarTools.querySelectorAll('.nav-btn')).find(btn =>
+                btn.getAttribute('onclick')?.includes(`navigate('${tool.id}')`)
+            );
+            if (button) sidebarTools.appendChild(button);
         });
     },
 
