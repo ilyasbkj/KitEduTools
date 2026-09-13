@@ -168,6 +168,22 @@ const app = {
         }
         
         this.currentView = viewId;
+
+        // Scroll to top of main content on every navigation
+        const mainEl = document.querySelector('main');
+        if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'instant' });
+
+        // Show footer only on content pages (home, legal, about, contact)
+        const contentPages = ['home', 'privacy', 'terms', 'about', 'contact'];
+        const footer = document.getElementById('main-footer');
+        if (footer) {
+            if (contentPages.includes(viewId)) {
+                footer.classList.remove('hidden');
+            } else {
+                footer.classList.add('hidden');
+            }
+        }
+
         if (typeof Pomodoro !== 'undefined') Pomodoro.onNavigate(viewId);
         
         // Close mobile menu if open
