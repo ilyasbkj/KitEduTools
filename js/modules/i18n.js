@@ -56,7 +56,10 @@ export const I18n = {
             'py_run': 'Ejecutar',
             'guides_title': 'Temas',
             'guide_python': 'Guía Python',
-            'guide_html': 'Guía HTML'
+            'guide_html': 'Guía HTML',
+            'guide_study': 'Técnicas de Estudio',
+            'guide_algorithms': 'Lógica y Algoritmos',
+            'guide_web': 'Arquitectura Web'
         },
         'ca': {
             'nav_tools': 'Eines',
@@ -112,7 +115,10 @@ export const I18n = {
             'py_run': 'Executar',
             'guides_title': 'Temes',
             'guide_python': 'Guia Python',
-            'guide_html': 'Guia HTML'
+            'guide_html': 'Guia HTML',
+            'guide_study': 'Tècniques d\'Estudi',
+            'guide_algorithms': 'Lògica i Algorismes',
+            'guide_web': 'Arquitectura Web'
         },
         'en': {
             'nav_tools': 'Tools',
@@ -168,7 +174,10 @@ export const I18n = {
             'py_run': 'Run',
             'guides_title': 'Topics',
             'guide_python': 'Python Guide',
-            'guide_html': 'HTML Guide'
+            'guide_html': 'HTML Guide',
+            'guide_study': 'Study Techniques',
+            'guide_algorithms': 'Logic and Algorithms',
+            'guide_web': 'Web Architecture'
         }
     },
 
