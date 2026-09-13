@@ -231,8 +231,28 @@ const app = {
         if (!btn || !sidebar || !overlay) return;
         
         const toggleMenu = () => {
-            sidebar.classList.toggle('-translate-x-full');
-            overlay.classList.toggle('hidden');
+            const isOpen = !sidebar.classList.contains('hidden') && !sidebar.classList.contains('-translate-x-full');
+
+            if (isOpen) {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+
+                // En Inicio el panel no forma parte del diseño base. Esperamos
+                // la animación de cierre antes de volver a ocultarlo por completo.
+                if (this.currentView === 'home') {
+                    setTimeout(() => {
+                        if (sidebar.classList.contains('-translate-x-full')) {
+                            sidebar.classList.add('hidden');
+                            sidebar.classList.remove('flex');
+                        }
+                    }, 300);
+                }
+                return;
+            }
+
+            sidebar.classList.remove('hidden', '-translate-x-full');
+            sidebar.classList.add('flex');
+            overlay.classList.remove('hidden');
         };
         
         btn.addEventListener('click', toggleMenu);

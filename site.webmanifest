@@ -1,0 +1,17 @@
+{
+  "name": "KitEduTools",
+  "short_name": "KitEduTools",
+  "description": "Herramientas académicas gratuitas para estudiantes.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f141e",
+  "theme_color": "#0f141e",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
