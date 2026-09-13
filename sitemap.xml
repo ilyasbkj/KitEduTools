@@ -1,9 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://kitedutools.com/</loc></url>
+  <url><loc>https://kitedutools.com/herramientas/</loc></url>
+  <url><loc>https://kitedutools.com/herramientas/calculadora.html</loc></url>
+  <url><loc>https://kitedutools.com/herramientas/conversor.html</loc></url>
+  <url><loc>https://kitedutools.com/herramientas/editor-html.html</loc></url>
+  <url><loc>https://kitedutools.com/herramientas/pomodoro.html</loc></url>
+  <url><loc>https://kitedutools.com/herramientas/analizador-textos.html</loc></url>
+  <url><loc>https://kitedutools.com/herramientas/ortografia.html</loc></url>
+  <url><loc>https://kitedutools.com/herramientas/flashcards.html</loc></url>
+  <url><loc>https://kitedutools.com/herramientas/markdown.html</loc></url>
+  <url><loc>https://kitedutools.com/herramientas/python-ide.html</loc></url>
+  <url><loc>https://kitedutools.com/herramientas/guias.html</loc></url>
+  <url><loc>https://kitedutools.com/herramientas/agenda.html</loc></url>
+  <url><loc>https://kitedutools.com/herramientas/libreta.html</loc></url>
+  <url><loc>https://kitedutools.com/herramientas/mapas-mentales.html</loc></url>
   <url><loc>https://kitedutools.com/guias/</loc></url>
   <url><loc>https://kitedutools.com/guias/calculadora-cientifica.html</loc></url>
   <url><loc>https://kitedutools.com/guias/tecnica-pomodoro.html</loc></url>
   <url><loc>https://kitedutools.com/guias/analizador-de-textos.html</loc></url>
   <url><loc>https://kitedutools.com/guias/flashcards-para-estudiar.html</loc></url>
+  <url><loc>https://kitedutools.com/legal/</loc></url>
+  <url><loc>https://kitedutools.com/legal/privacidad.html</loc></url>
+  <url><loc>https://kitedutools.com/legal/cookies.html</loc></url>
+  <url><loc>https://kitedutools.com/legal/terminos.html</loc></url>
+  <url><loc>https://kitedutools.com/legal/sobre-nosotros.html</loc></url>
+  <url><loc>https://kitedutools.com/legal/contacto.html</loc></url>
 </urlset>
