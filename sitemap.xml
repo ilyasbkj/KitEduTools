@@ -1,29 +1,164 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://kitedutools.com/</loc></url>
-  <url><loc>https://kitedutools.com/herramientas/</loc></url>
-  <url><loc>https://kitedutools.com/herramientas/calculadora.html</loc></url>
-  <url><loc>https://kitedutools.com/herramientas/conversor.html</loc></url>
-  <url><loc>https://kitedutools.com/herramientas/editor-html.html</loc></url>
-  <url><loc>https://kitedutools.com/herramientas/pomodoro.html</loc></url>
-  <url><loc>https://kitedutools.com/herramientas/analizador-textos.html</loc></url>
-  <url><loc>https://kitedutools.com/herramientas/ortografia.html</loc></url>
-  <url><loc>https://kitedutools.com/herramientas/flashcards.html</loc></url>
-  <url><loc>https://kitedutools.com/herramientas/markdown.html</loc></url>
-  <url><loc>https://kitedutools.com/herramientas/python-ide.html</loc></url>
-  <url><loc>https://kitedutools.com/herramientas/guias.html</loc></url>
-  <url><loc>https://kitedutools.com/herramientas/agenda.html</loc></url>
-  <url><loc>https://kitedutools.com/herramientas/libreta.html</loc></url>
-  <url><loc>https://kitedutools.com/herramientas/mapas-mentales.html</loc></url>
-  <url><loc>https://kitedutools.com/guias/</loc></url>
-  <url><loc>https://kitedutools.com/guias/calculadora-cientifica.html</loc></url>
-  <url><loc>https://kitedutools.com/guias/tecnica-pomodoro.html</loc></url>
-  <url><loc>https://kitedutools.com/guias/analizador-de-textos.html</loc></url>
-  <url><loc>https://kitedutools.com/guias/flashcards-para-estudiar.html</loc></url>
-  <url><loc>https://kitedutools.com/legal/</loc></url>
-  <url><loc>https://kitedutools.com/legal/privacidad.html</loc></url>
-  <url><loc>https://kitedutools.com/legal/cookies.html</loc></url>
-  <url><loc>https://kitedutools.com/legal/terminos.html</loc></url>
-  <url><loc>https://kitedutools.com/legal/sobre-nosotros.html</loc></url>
-  <url><loc>https://kitedutools.com/legal/contacto.html</loc></url>
+
+<url>
+  <loc>https://kitedutools.com/</loc>
+  <lastmod>2026-09-14</lastmod>
+  <changefreq>weekly</changefreq>
+  <priority>1.0</priority>
+</url>
+
+<url>
+  <loc>https://kitedutools.com/herramientas/</loc>
+  <lastmod>2026-09-14</lastmod>
+  <changefreq>weekly</changefreq>
+  <priority>0.9</priority>
+</url>
+<url>
+  <loc>https://kitedutools.com/herramientas/calculadora.html</loc>
+  <lastmod>2026-09-14</lastmod>
+  <changefreq>monthly</changefreq>
+  <priority>0.8</priority>
+</url>
+<url>
+  <loc>https://kitedutools.com/herramientas/conversor.html</loc>
+  <lastmod>2026-09-14</lastmod>
+  <changefreq>monthly</changefreq>
+  <priority>0.8</priority>
+</url>
+<url>
+  <loc>https://kitedutools.com/herramientas/editor-html.html</loc>
+  <lastmod>2026-09-14</lastmod>
+  <changefreq>monthly</changefreq>
+  <priority>0.8</priority>
+</url>
+<url>
+  <loc>https://kitedutools.com/herramientas/pomodoro.html</loc>
+  <lastmod>2026-09-14</lastmod>
+  <changefreq>monthly</changefreq>
+  <priority>0.8</priority>
+</url>
+<url>
+  <loc>https://kitedutools.com/herramientas/analizador-textos.html</loc>
+  <lastmod>2026-09-14</lastmod>
+  <changefreq>monthly</changefreq>
+  <priority>0.8</priority>
+</url>
+<url>
+  <loc>https://kitedutools.com/herramientas/ortografia.html</loc>
+  <lastmod>2026-09-14</lastmod>
+  <changefreq>monthly</changefreq>
+  <priority>0.8</priority>
+</url>
+<url>
+  <loc>https://kitedutools.com/herramientas/flashcards.html</loc>
+  <lastmod>2026-09-14</lastmod>
+  <changefreq>monthly</changefreq>
+  <priority>0.8</priority>
+</url>
+<url>
+  <loc>https://kitedutools.com/herramientas/markdown.html</loc>
+  <lastmod>2026-09-14</lastmod>
+  <changefreq>monthly</changefreq>
+  <priority>0.7</priority>
+</url>
+<url>
+  <loc>https://kitedutools.com/herramientas/python-ide.html</loc>
+  <lastmod>2026-09-14</lastmod>
+  <changefreq>monthly</changefreq>
+  <priority>0.8</priority>
+</url>
+<url>
+  <loc>https://kitedutools.com/herramientas/guias.html</loc>
+  <lastmod>2026-09-14</lastmod>
+  <changefreq>monthly</changefreq>
+  <priority>0.7</priority>
+</url>
+<url>
+  <loc>https://kitedutools.com/herramientas/agenda.html</loc>
+  <lastmod>2026-09-14</lastmod>
+  <changefreq>monthly</changefreq>
+  <priority>0.7</priority>
+</url>
+<url>
+  <loc>https://kitedutools.com/herramientas/libreta.html</loc>
+  <lastmod>2026-09-14</lastmod>
+  <changefreq>monthly</changefreq>
+  <priority>0.7</priority>
+</url>
+<url>
+  <loc>https://kitedutools.com/herramientas/mapas-mentales.html</loc>
+  <lastmod>2026-09-14</lastmod>
+  <changefreq>monthly</changefreq>
+  <priority>0.7</priority>
+</url>
+
+<url>
+  <loc>https://kitedutools.com/guias/</loc>
+  <lastmod>2026-09-14</lastmod>
+  <changefreq>weekly</changefreq>
+  <priority>0.8</priority>
+</url>
+<url>
+  <loc>https://kitedutools.com/guias/calculadora-cientifica.html</loc>
+  <lastmod>2026-09-14</lastmod>
+  <changefreq>monthly</changefreq>
+  <priority>0.6</priority>
+</url>
+<url>
+  <loc>https://kitedutools.com/guias/tecnica-pomodoro.html</loc>
+  <lastmod>2026-09-14</lastmod>
+  <changefreq>monthly</changefreq>
+  <priority>0.6</priority>
+</url>
+<url>
+  <loc>https://kitedutools.com/guias/analizador-de-textos.html</loc>
+  <lastmod>2026-09-14</lastmod>
+  <changefreq>monthly</changefreq>
+  <priority>0.6</priority>
+</url>
+<url>
+  <loc>https://kitedutools.com/guias/flashcards-para-estudiar.html</loc>
+  <lastmod>2026-09-14</lastmod>
+  <changefreq>monthly</changefreq>
+  <priority>0.6</priority>
+</url>
+
+<url>
+  <loc>https://kitedutools.com/legal/</loc>
+  <lastmod>2026-09-14</lastmod>
+  <changefreq>yearly</changefreq>
+  <priority>0.3</priority>
+</url>
+<url>
+  <loc>https://kitedutools.com/legal/privacidad.html</loc>
+  <lastmod>2026-09-14</lastmod>
+  <changefreq>yearly</changefreq>
+  <priority>0.3</priority>
+</url>
+<url>
+  <loc>https://kitedutools.com/legal/cookies.html</loc>
+  <lastmod>2026-09-14</lastmod>
+  <changefreq>yearly</changefreq>
+  <priority>0.3</priority>
+</url>
+<url>
+  <loc>https://kitedutools.com/legal/terminos.html</loc>
+  <lastmod>2026-09-14</lastmod>
+  <changefreq>yearly</changefreq>
+  <priority>0.3</priority>
+</url>
+<url>
+  <loc>https://kitedutools.com/legal/sobre-nosotros.html</loc>
+  <lastmod>2026-09-14</lastmod>
+  <changefreq>yearly</changefreq>
+  <priority>0.4</priority>
+</url>
+<url>
+  <loc>https://kitedutools.com/legal/contacto.html</loc>
+  <lastmod>2026-09-14</lastmod>
+  <changefreq>yearly</changefreq>
+  <priority>0.4</priority>
+</url>
+
 </urlset>
